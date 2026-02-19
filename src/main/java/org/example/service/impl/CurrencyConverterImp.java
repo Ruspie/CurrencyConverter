@@ -16,7 +16,7 @@ public class CurrencyConverterImp implements CurrencyConverter {
     public List<ExchangeRate> exchangeRates = new ArrayList<>();
 
     public CurrencyConverterImp(ExchangeRate... exchangeRates) {
-        exchangeRates = Arrays.stream(exchangeRates).collect(Collectors.toList());
+        this.exchangeRates = Arrays.asList(exchangeRates);
     }
 
     public CurrencyConverterImp() {
@@ -58,26 +58,17 @@ public class CurrencyConverterImp implements CurrencyConverter {
     }
 
     public boolean addExchangeRate(ExchangeRate exchangeRate) {
-        int counter = 0;
-
         for (ExchangeRate rate : exchangeRates) {
             if (rate != null) {
-                counter++;
-
                 if (rate.getFromCurrency().equals(exchangeRate.getFromCurrency())
                         && rate.getToCurrency().equals(exchangeRate.getToCurrency())) {
-                    rate = exchangeRate;
+                    rate.setExchangeRate(exchangeRate.getExchangeRate());
                     return true;
                 }
             }
         }
 
-        if (counter > exchangeRates.length) {
-            return false;
-            //throw new IllegalArgumentException("Limit currency exchange rates");
-        }
-
-        exchangeRates[counter] = exchangeRate;
+        exchangeRates.add(exchangeRate);
         return true;
     }
 

@@ -1,6 +1,7 @@
 package org.example.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class ExchangeRate implements Serializable {
 
@@ -19,6 +20,10 @@ public class ExchangeRate implements Serializable {
 
     }
 
+    public void setExchangeRate(Double exchangeRate) {
+        this.exchangeRate = exchangeRate;
+    }
+
     public CurrencyCodeEnum getFromCurrency() {
         return fromCurrency;
     }
@@ -33,6 +38,22 @@ public class ExchangeRate implements Serializable {
 
     public Double getCounter() {
         return counter;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ExchangeRate that = (ExchangeRate) o;
+        return fromCurrency == that.fromCurrency
+                && toCurrency == that.toCurrency
+                && Objects.equals(exchangeRate, that.exchangeRate)
+                && Objects.equals(counter, that.counter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fromCurrency, toCurrency, exchangeRate, counter);
     }
 
     @Override
