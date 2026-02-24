@@ -18,7 +18,8 @@ public class Main {
         ExchangeRate exchangeRateBYNEUR = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.EUR, EXCHANGE_RATE_BYN_EUR, 1.0);
         ExchangeRate exchangeRateBYNRUB = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.RUB, EXCHANGE_RATE_BYN_RUB, 100.0);
 
-        CurrencyConverterImp currencyConverterImp = new CurrencyConverterImp(exchangeRateBYNUSD, exchangeRateBYNEUR, exchangeRateBYNRUB);
+        //CurrencyConverterImp currencyConverterImp = new CurrencyConverterImp(exchangeRateBYNUSD, exchangeRateBYNEUR, exchangeRateBYNRUB);
+        CurrencyConverterImp currencyConverterImp = new CurrencyConverterImp();
 
         Sum baseSumBYN = new Sum(100, CurrencyCodeEnum.BYN);
         try {

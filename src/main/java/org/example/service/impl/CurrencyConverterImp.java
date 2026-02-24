@@ -9,7 +9,6 @@ import org.example.service.CurrencyConverter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CurrencyConverterImp implements CurrencyConverter {
 
@@ -20,7 +19,8 @@ public class CurrencyConverterImp implements CurrencyConverter {
     }
 
     public CurrencyConverterImp() {
-
+        ExchangeRatesFileLoader exchangeRatesFileLoader = new ExchangeRatesFileLoader();
+        exchangeRates = exchangeRatesFileLoader.loadRates();
     }
 
     public CurrencyConverterImp(ExchangeRate exchangeRateBYNUSD, ExchangeRate exchangeRateBYNEUR, ExchangeRate exchangeRateBYNRUB) {
