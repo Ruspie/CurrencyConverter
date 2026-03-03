@@ -8,20 +8,32 @@ public class ExchangeRate implements Serializable {
     private CurrencyCodeEnum fromCurrency;
     private CurrencyCodeEnum toCurrency;
     private Double exchangeRate;
-    private Double counter;
+    private Double scale;
 
     public ExchangeRate() {}
 
-    public ExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, Double exchangeRate, Double counter) {
+    public ExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, Double exchangeRate, Double scale) {
         this.fromCurrency = fromCurrency;
         this.toCurrency = toCurrency;
         this.exchangeRate = exchangeRate;
-        this.counter = counter;
+        this.scale = scale;
 
     }
 
     public void setExchangeRate(Double exchangeRate) {
         this.exchangeRate = exchangeRate;
+    }
+
+    public void setFromCurrency(CurrencyCodeEnum fromCurrency) {
+        this.fromCurrency = fromCurrency;
+    }
+
+    public void setToCurrency(CurrencyCodeEnum toCurrency) {
+        this.toCurrency = toCurrency;
+    }
+
+    public void setScale(Double scale) {
+        this.scale = scale;
     }
 
     public CurrencyCodeEnum getFromCurrency() {
@@ -36,8 +48,8 @@ public class ExchangeRate implements Serializable {
         return exchangeRate;
     }
 
-    public Double getCounter() {
-        return counter;
+    public Double getScale() {
+        return scale;
     }
 
     @Override
@@ -48,17 +60,17 @@ public class ExchangeRate implements Serializable {
         return fromCurrency == that.fromCurrency
                 && toCurrency == that.toCurrency
                 && Objects.equals(exchangeRate, that.exchangeRate)
-                && Objects.equals(counter, that.counter);
+                && Objects.equals(scale, that.scale);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fromCurrency, toCurrency, exchangeRate, counter);
+        return Objects.hash(fromCurrency, toCurrency, exchangeRate, scale);
     }
 
     @Override
     public String toString() {
         return fromCurrency.name() + " => " + toCurrency.name() + " - " +
-                exchangeRate + " (1:" + String.format("%.0f", counter) + ')';
+                exchangeRate + " (1:" + String.format("%.0f", scale) + ')';
     }
 }
