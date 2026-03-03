@@ -4,8 +4,11 @@ import org.example.dto.CurrencyCodeEnum;
 import org.example.dto.ExchangeRate;
 import org.example.dto.Sum;
 import org.example.exception.DataNotFoundException;
+import org.example.exception.HttpNBRBLoaderException;
 import org.example.service.CurrencyConverter;
+import org.example.service.ExchangeRatesLoader;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,8 +21,8 @@ public class CurrencyConverterImp implements CurrencyConverter {
         this.exchangeRates = Arrays.asList(exchangeRates);
     }
 
-    public CurrencyConverterImp() {
-        ExchangeRatesFileLoader exchangeRatesFileLoader = new ExchangeRatesFileLoader();
+    public CurrencyConverterImp() throws IOException, HttpNBRBLoaderException, InterruptedException {
+        ExchangeRatesLoader exchangeRatesFileLoader = new HttpNBRBExchangeRatesLoader();
         exchangeRates = exchangeRatesFileLoader.loadRates();
     }
 
@@ -94,7 +97,7 @@ public class CurrencyConverterImp implements CurrencyConverter {
             throw new DataNotFoundException("Не найден курс конверсии", sum.getCurrency(), destinationCurrency);
         }
 
-        double result = sum.getSum() / currentExchangeRate.getExchangeRate() * currentExchangeRate.getCounter();
+        double result = sum.getSum() / currentExchangeRate.getExchangeRate() * currentExchangeRate.getScale();
 
         Sum sumResult = new Sum(Math.round(result * 100.0) / 100.0, destinationCurrency);
         sumResult.print(sum);

@@ -4,7 +4,10 @@ import org.example.dto.CurrencyCodeEnum;
 import org.example.dto.ExchangeRate;
 import org.example.dto.Sum;
 import org.example.exception.DataNotFoundException;
+import org.example.exception.HttpNBRBLoaderException;
 import org.example.service.impl.CurrencyConverterImp;
+
+import java.io.IOException;
 
 public class Main {
 
@@ -12,7 +15,7 @@ public class Main {
     public static final double EXCHANGE_RATE_BYN_EUR = 3.45;
     public static final double EXCHANGE_RATE_BYN_RUB = 2.45;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, HttpNBRBLoaderException, InterruptedException {
 
         ExchangeRate exchangeRateBYNUSD = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.USD, EXCHANGE_RATE_BYN_USD, 1.0);
         ExchangeRate exchangeRateBYNEUR = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.EUR, EXCHANGE_RATE_BYN_EUR, 1.0);
