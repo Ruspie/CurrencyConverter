@@ -17,6 +17,9 @@ public class Main {
 
     public static void main(String[] args) throws IOException, HttpNBRBLoaderException, InterruptedException {
 
+
+
+
         ExchangeRate exchangeRateBYNUSD = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.USD, EXCHANGE_RATE_BYN_USD, 1.0);
         ExchangeRate exchangeRateBYNEUR = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.EUR, EXCHANGE_RATE_BYN_EUR, 1.0);
         ExchangeRate exchangeRateBYNRUB = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.RUB, EXCHANGE_RATE_BYN_RUB, 100.0);
