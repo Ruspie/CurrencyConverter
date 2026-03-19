@@ -31,6 +31,8 @@ public class HttpNBRBExchangeRatesLoader implements ExchangeRatesLoader {
     @Override
     public List<ExchangeRate> loadRates() throws IOException, InterruptedException, HttpNBRBLoaderException {
 
+        System.out.println("Я http");
+
         List<ExchangeRate> exchangeRates = new ArrayList<>();
 
         HttpRequest request = HttpRequest.newBuilder()

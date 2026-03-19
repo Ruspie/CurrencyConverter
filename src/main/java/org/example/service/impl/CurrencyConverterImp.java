@@ -1,5 +1,6 @@
 package org.example.service.impl;
 
+import org.example.config.PropertiesLoader;
 import org.example.dto.CurrencyCodeEnum;
 import org.example.dto.ExchangeRate;
 import org.example.dto.Sum;
@@ -15,6 +16,16 @@ import java.util.List;
 
 public class CurrencyConverterImp implements CurrencyConverter {
 
+    private final ExchangeRatesLoader exchangeRatesFileLoader;
+
+    {
+        if ("HTTP".equals(PropertiesLoader.getProperty("loading.mode")))
+            exchangeRatesFileLoader = new HttpNBRBExchangeRatesLoader();
+        else
+            exchangeRatesFileLoader = new ExchangeRatesFileLoader();
+    }
+
+
     public List<ExchangeRate> exchangeRates = new ArrayList<>();
 
     public CurrencyConverterImp(ExchangeRate... exchangeRates) {
@@ -22,8 +33,7 @@ public class CurrencyConverterImp implements CurrencyConverter {
     }
 
     public CurrencyConverterImp() throws IOException, HttpNBRBLoaderException, InterruptedException {
-        ExchangeRatesLoader exchangeRatesFileLoader = new HttpNBRBExchangeRatesLoader();
-        exchangeRates = exchangeRatesFileLoader.loadRates();
+        loadExchangeRates();
     }
 
     public CurrencyConverterImp(ExchangeRate exchangeRateBYNUSD, ExchangeRate exchangeRateBYNEUR, ExchangeRate exchangeRateBYNRUB) {
@@ -32,6 +42,10 @@ public class CurrencyConverterImp implements CurrencyConverter {
         addExchangeRate(exchangeRateBYNRUB);
 
         generateAnotherExchangeRates(exchangeRateBYNUSD, exchangeRateBYNEUR, exchangeRateBYNRUB);
+    }
+
+    public void loadExchangeRates() throws IOException, HttpNBRBLoaderException, InterruptedException {
+        exchangeRates = exchangeRatesFileLoader.loadRates();
     }
 
     private void generateAnotherExchangeRates(ExchangeRate exchangeRateBYNUSD, ExchangeRate exchangeRateBYNEUR, ExchangeRate exchangeRateBYNRUB) {

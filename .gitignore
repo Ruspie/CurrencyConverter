@@ -13,6 +13,8 @@ target/
 *.iml
 *.ipr
 
+src\main\resources\application_local_1.properties
+
 ### Eclipse ###
 .apt_generated
 .classpath

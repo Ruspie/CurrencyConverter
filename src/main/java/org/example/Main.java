@@ -5,6 +5,7 @@ import org.example.dto.ExchangeRate;
 import org.example.dto.Sum;
 import org.example.exception.DataNotFoundException;
 import org.example.exception.HttpNBRBLoaderException;
+import org.example.schedule.ExchangeRatesLoaderScheduler;
 import org.example.service.impl.CurrencyConverterImp;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class Main {
 
         //CurrencyConverterImp currencyConverterImp = new CurrencyConverterImp(exchangeRateBYNUSD, exchangeRateBYNEUR, exchangeRateBYNRUB);
         CurrencyConverterImp currencyConverterImp = new CurrencyConverterImp();
+        ExchangeRatesLoaderScheduler exchangeRatesLoaderScheduler = new ExchangeRatesLoaderScheduler(currencyConverterImp);
 
         Sum baseSumBYN = new Sum(100, CurrencyCodeEnum.BYN);
         try {
@@ -47,6 +49,10 @@ public class Main {
         }
 
         currencyConverterImp.printAllCurrencyExchangeRates();
+
+        while (true) {
+
+        }
 
     }
 }

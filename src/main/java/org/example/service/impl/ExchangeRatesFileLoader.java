@@ -1,5 +1,6 @@
 package org.example.service.impl;
 
+import org.example.config.PropertiesLoader;
 import org.example.dto.CurrencyCodeEnum;
 import org.example.dto.ExchangeRate;
 import org.example.service.ExchangeRatesLoader;
@@ -12,9 +13,11 @@ public class ExchangeRatesFileLoader implements ExchangeRatesLoader {
 
     @Override
     public List<ExchangeRate> loadRates() {
+        System.out.println("Я файл");
+
         List<ExchangeRate> exchangeRates = new ArrayList<>();
 
-        File file = new File("./currency_rates.txt");
+        File file = new File(PropertiesLoader.getProperty("loading.filePath"));
 
         try (BufferedReader fileReader = new BufferedReader(new FileReader(file))) {
             String exchangeRateLine;
