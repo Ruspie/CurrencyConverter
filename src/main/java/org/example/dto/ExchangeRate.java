@@ -1,8 +1,11 @@
 package org.example.dto;
 
+import lombok.Builder;
+
 import java.io.Serializable;
 import java.util.Objects;
 
+@Builder
 public class ExchangeRate implements Serializable {
 
     private CurrencyCodeEnum fromCurrency;

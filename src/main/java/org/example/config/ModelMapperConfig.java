@@ -3,6 +3,7 @@ package org.example.config;
 import org.example.dto.CurrencyCodeEnum;
 import org.example.dto.ExchangeRate;
 import org.example.dto.external.NBRBExchangeRate;
+import org.example.repository.entity.ExchangeRateEntity;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 
