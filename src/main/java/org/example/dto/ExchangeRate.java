@@ -3,6 +3,7 @@ package org.example.dto;
 import lombok.Builder;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 @Builder
@@ -10,12 +11,12 @@ public class ExchangeRate implements Serializable {
 
     private CurrencyCodeEnum fromCurrency;
     private CurrencyCodeEnum toCurrency;
-    private Double exchangeRate;
-    private Double scale;
+    private BigDecimal exchangeRate;
+    private BigDecimal scale;
 
     public ExchangeRate() {}
 
-    public ExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, Double exchangeRate, Double scale) {
+    public ExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, BigDecimal exchangeRate, BigDecimal scale) {
         this.fromCurrency = fromCurrency;
         this.toCurrency = toCurrency;
         this.exchangeRate = exchangeRate;
@@ -23,7 +24,7 @@ public class ExchangeRate implements Serializable {
 
     }
 
-    public void setExchangeRate(Double exchangeRate) {
+    public void setExchangeRate(BigDecimal exchangeRate) {
         this.exchangeRate = exchangeRate;
     }
 
@@ -35,7 +36,7 @@ public class ExchangeRate implements Serializable {
         this.toCurrency = toCurrency;
     }
 
-    public void setScale(Double scale) {
+    public void setScale(BigDecimal scale) {
         this.scale = scale;
     }
 
@@ -47,11 +48,11 @@ public class ExchangeRate implements Serializable {
         return toCurrency;
     }
 
-    public Double getExchangeRate() {
+    public BigDecimal getExchangeRate() {
         return exchangeRate;
     }
 
-    public Double getScale() {
+    public BigDecimal getScale() {
         return scale;
     }
 

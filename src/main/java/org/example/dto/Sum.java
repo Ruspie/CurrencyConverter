@@ -1,16 +1,18 @@
 package org.example.dto;
 
+import java.math.BigDecimal;
+
 public class Sum {
 
-    private final double sum;
+    private final BigDecimal sum;
     private final CurrencyCodeEnum currency;
 
-    public Sum(double sum, CurrencyCodeEnum currency) {
+    public Sum(BigDecimal sum, CurrencyCodeEnum currency) {
         this.sum = sum;
         this.currency = currency;
     }
 
-    public double getSum() {
+    public BigDecimal getSum() {
         return sum;
     }
 

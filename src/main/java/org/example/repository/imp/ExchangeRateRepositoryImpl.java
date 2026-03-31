@@ -1,9 +1,8 @@
 package org.example.repository.imp;
 
 import org.example.config.PropertiesLoader;
-import org.example.dto.CurrencyCodeEnum;
-import org.example.dto.ExchangeRate;
 import org.example.repository.ExchangeRateRepository;
+import org.example.repository.entity.ExchangeRateEntity;
 
 import java.io.IOException;
 import java.sql.*;
@@ -27,9 +26,9 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     }
 
     @Override
-    public List<ExchangeRate> findAll() {
+    public List<ExchangeRateEntity> findAll() {
 
-        List<ExchangeRate> exchangeRates = new ArrayList<>();
+        List<ExchangeRateEntity> exchangeRates = new ArrayList<>();
 
         String query = "SELECT from_currency, id, to_currency, rate, scale FROM cur_ex.exchange_rate ";
 
@@ -37,11 +36,11 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
             //preparedStatement.setLong(1, 1L);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ExchangeRate exchangeRate = ExchangeRate.builder()
-                        .fromCurrency(CurrencyCodeEnum.valueOf(resultSet.getString("from_currency")))
-                        .toCurrency(CurrencyCodeEnum.valueOf(resultSet.getString("to_currency")))
-                        .exchangeRate(resultSet.getDouble("rate"))
-                        .scale(resultSet.getDouble("scale"))
+                ExchangeRateEntity exchangeRate = ExchangeRateEntity.builder()
+                        .fromCurrency(resultSet.getString("from_currency"))
+                        .toCurrency(resultSet.getString("to_currency"))
+                        .rate(resultSet.getBigDecimal("rate"))
+                        .scale(resultSet.getBigDecimal("scale"))
                         .build();
 
                 exchangeRates.add(exchangeRate);
@@ -55,7 +54,7 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     }
 
     @Override
-    public void insert(ExchangeRate exchangeRate) {
+    public void insert(ExchangeRateEntity exchangeRate) {
         String query = """
             INSERT INTO cur_ex.exchange_rate
             (from_currency, id, to_currency, rate, "scale")
@@ -64,10 +63,10 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
         int affectedRows;
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, exchangeRate.getFromCurrency().name());
-            preparedStatement.setString(2, exchangeRate.getToCurrency().name());
-            preparedStatement.setDouble(3, exchangeRate.getExchangeRate());
-            preparedStatement.setDouble(4, exchangeRate.getScale());
+            preparedStatement.setString(1, exchangeRate.getFromCurrency());
+            preparedStatement.setString(2, exchangeRate.getToCurrency());
+            preparedStatement.setBigDecimal(3, exchangeRate.getRate());
+            preparedStatement.setBigDecimal(4, exchangeRate.getScale());
             affectedRows = preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
@@ -77,7 +76,7 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     }
 
     @Override
-    public void delete(ExchangeRate exchangeRate) {
+    public void delete(ExchangeRateEntity exchangeRate) {
         String query = """
             DELETE FROM cur_ex.exchange_rate
             WHERE
@@ -89,10 +88,10 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
         int affectedRows;
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, exchangeRate.getFromCurrency().name());
-            preparedStatement.setString(2, exchangeRate.getToCurrency().name());
-            preparedStatement.setDouble(3, exchangeRate.getExchangeRate());
-            preparedStatement.setDouble(4, exchangeRate.getScale());
+            preparedStatement.setString(1, exchangeRate.getFromCurrency());
+            preparedStatement.setString(2, exchangeRate.getToCurrency());
+            preparedStatement.setBigDecimal(3, exchangeRate.getRate());
+            preparedStatement.setBigDecimal(4, exchangeRate.getScale());
             affectedRows = preparedStatement.executeUpdate();
 
         } catch (SQLException e) {

@@ -7,10 +7,10 @@ import java.util.List;
 
 public interface ExchangeRateRepository extends AutoCloseable {
 
-    List<ExchangeRate> findAll();
+    List<ExchangeRateEntity> findAll();
 
-    void insert(ExchangeRate exchangeRate);
+    void insert(ExchangeRateEntity exchangeRate);
 
-    void delete(ExchangeRate exchangeRate);
+    void delete(ExchangeRateEntity exchangeRate);
 
 }
