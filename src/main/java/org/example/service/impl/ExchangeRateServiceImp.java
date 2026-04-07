@@ -1,7 +1,7 @@
 package org.example.service.impl;
 
 import org.example.config.ModelMapperConfig;
-import org.example.dto.ExchangeRate;
+import org.example.dto.ExchangeRateDto;
 import org.example.repository.ExchangeRateRepository;
 import org.example.repository.entity.ExchangeRateEntity;
 
@@ -16,22 +16,22 @@ public class ExchangeRateServiceImp {
         this.exchangeRateRepository = exchangeRateRepository;
     }
 
-    public List<ExchangeRate> getAllExchangeRates() {
+    public List<ExchangeRateDto> getAllExchangeRates() {
         List<ExchangeRateEntity> exchangeRateEntities = exchangeRateRepository.findAll();
 
         return exchangeRateEntities.stream()
-                .map(exchangeRateEntity -> ModelMapperConfig.getInstance().map(exchangeRateEntity, ExchangeRate.class))
+                .map(exchangeRateEntity -> ModelMapperConfig.getInstance().map(exchangeRateEntity, ExchangeRateDto.class))
                 .collect(Collectors.toList());
     }
 
-    public void saveExchangeRate(ExchangeRate exchangeRate) {
-        ExchangeRateEntity exchangeRateEntity = ModelMapperConfig.getInstance().map(exchangeRate, ExchangeRateEntity.class);
+    public void saveExchangeRate(ExchangeRateDto exchangeRateDto) {
+        ExchangeRateEntity exchangeRateEntity = ModelMapperConfig.getInstance().map(exchangeRateDto, ExchangeRateEntity.class);
 
         exchangeRateRepository.insert(exchangeRateEntity);
     }
 
-    public void deleteExchangeRate(ExchangeRate exchangeRate) {
-        ExchangeRateEntity exchangeRateEntity = ModelMapperConfig.getInstance().map(exchangeRate, ExchangeRateEntity.class);
+    public void deleteExchangeRate(ExchangeRateDto exchangeRateDto) {
+        ExchangeRateEntity exchangeRateEntity = ModelMapperConfig.getInstance().map(exchangeRateDto, ExchangeRateEntity.class);
 
         exchangeRateRepository.delete(exchangeRateEntity);
     }

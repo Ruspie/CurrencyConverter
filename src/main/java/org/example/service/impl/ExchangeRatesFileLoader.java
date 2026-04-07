@@ -2,7 +2,7 @@ package org.example.service.impl;
 
 import org.example.config.PropertiesLoader;
 import org.example.dto.CurrencyCodeEnum;
-import org.example.dto.ExchangeRate;
+import org.example.dto.ExchangeRateDto;
 import org.example.service.ExchangeRatesLoader;
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.List;
 public class ExchangeRatesFileLoader implements ExchangeRatesLoader {
 
     @Override
-    public List<ExchangeRate> loadRates() {
+    public List<ExchangeRateDto> loadRates() {
         System.out.println("Я файл");
 
-        List<ExchangeRate> exchangeRates = new ArrayList<>();
+        List<ExchangeRateDto> exchangeRateDtos = new ArrayList<>();
 
         File file = new File(PropertiesLoader.getProperty("loading.filePath"));
 
@@ -25,12 +25,12 @@ public class ExchangeRatesFileLoader implements ExchangeRatesLoader {
             String exchangeRateLine;
             while ((exchangeRateLine = fileReader.readLine()) != null) {
                 List<String> exchangeRateFields = List.of(exchangeRateLine.split(";"));
-                ExchangeRate exchangeRate = new ExchangeRate(
+                ExchangeRateDto exchangeRateDto = new ExchangeRateDto(
                         CurrencyCodeEnum.valueOf(exchangeRateFields.get(0)),
                         CurrencyCodeEnum.valueOf(exchangeRateFields.get(1)),
                         new BigDecimal(exchangeRateFields.get(2)),
                         new BigDecimal(exchangeRateFields.get(3)).divide(new BigDecimal(exchangeRateFields.get(4)), 10, RoundingMode.HALF_UP));
-                exchangeRates.add(exchangeRate);
+                exchangeRateDtos.add(exchangeRateDto);
             }
             ;
         } catch (FileNotFoundException e) {
@@ -39,7 +39,7 @@ public class ExchangeRatesFileLoader implements ExchangeRatesLoader {
             throw new RuntimeException(e);
         }
 
-        return exchangeRates;
+        return exchangeRateDtos;
     }
 
 }

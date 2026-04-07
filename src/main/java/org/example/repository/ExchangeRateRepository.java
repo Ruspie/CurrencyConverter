@@ -1,6 +1,5 @@
 package org.example.repository;
 
-import org.example.dto.ExchangeRate;
 import org.example.repository.entity.ExchangeRateEntity;
 
 import java.util.List;

@@ -13,7 +13,9 @@ public class PropertiesLoader {
     private static final Properties properties = new Properties();
 
     static {
-        try (InputStream inputStream = new FileInputStream("./src/main/resources/application.properties")) {
+        try (InputStream inputStream = PropertiesLoader.class
+                .getClassLoader()
+                .getResourceAsStream("application.properties");) {
             if (inputStream == null) throw new PropertiesException("Properties reading error");
 
             properties.load(inputStream);

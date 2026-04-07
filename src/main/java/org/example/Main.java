@@ -1,26 +1,27 @@
 package org.example;
 
 import org.example.dto.CurrencyCodeEnum;
-import org.example.dto.ExchangeRate;
-import org.example.repository.imp.ExchangeRateRepositoryImpl;
-import org.example.service.impl.ExchangeRateServiceImp;
+import org.example.dto.ExchangeRateDto;
+import org.example.dto.Sum;
+import org.example.exception.DataNotFoundException;
+import org.example.schedule.ExchangeRatesLoaderScheduler;
+import org.example.service.impl.CurrencyConverterImp;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public class Main {
 
-    public static final double EXCHANGE_RATE_BYN_USD = 2.85;
-    public static final double EXCHANGE_RATE_BYN_EUR = 3.45;
-    public static final double EXCHANGE_RATE_BYN_RUB = 2.45;
+    public static final BigDecimal EXCHANGE_RATE_BYN_USD = BigDecimal.valueOf(2.85f);
+    public static final BigDecimal EXCHANGE_RATE_BYN_EUR = BigDecimal.valueOf(3.45f);
+    public static final BigDecimal EXCHANGE_RATE_BYN_RUB = BigDecimal.valueOf(2.45f);
 
     public static void main(String[] args) throws Exception {
-        ExchangeRateRepositoryImpl exchangeRateRepository = null;
+        /*ExchangeRateRepositoryImpl exchangeRateRepository = null;
         try {
-            List<ExchangeRate> exchangeRates;
+            List<ExchangeRateDto> exchangeRates;
 
             exchangeRateRepository = new ExchangeRateRepositoryImpl();
-            ExchangeRate exchangeRateBYNEUR = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.EUR, BigDecimal.valueOf(EXCHANGE_RATE_BYN_EUR), BigDecimal.valueOf(1.0));
+            ExchangeRateDto exchangeRateBYNEUR = new ExchangeRateDto(CurrencyCodeEnum.BYN, CurrencyCodeEnum.EUR, BigDecimal.valueOf(EXCHANGE_RATE_BYN_EUR), BigDecimal.valueOf(1.0));
 
             ExchangeRateServiceImp exchangeRateServiceImp = new ExchangeRateServiceImp(exchangeRateRepository);
             exchangeRates = exchangeRateServiceImp.getAllExchangeRates();
@@ -35,17 +36,17 @@ public class Main {
 
             exchangeRates = exchangeRateServiceImp.getAllExchangeRates();
 
-            System.out.println(exchangeRates.toString());
+            System.out.println(exchangeRates.toString());*/
 
-        /*ExchangeRate exchangeRateBYNUSD = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.USD, EXCHANGE_RATE_BYN_USD, 1.0);
-        ExchangeRate exchangeRateBYNEUR = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.EUR, EXCHANGE_RATE_BYN_EUR, 1.0);
-        ExchangeRate exchangeRateBYNRUB = new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.RUB, EXCHANGE_RATE_BYN_RUB, 100.0);
+        ExchangeRateDto exchangeRateBYNUSD = new ExchangeRateDto(CurrencyCodeEnum.BYN, CurrencyCodeEnum.USD, EXCHANGE_RATE_BYN_USD, BigDecimal.ONE);
+        ExchangeRateDto exchangeRateBYNEUR = new ExchangeRateDto(CurrencyCodeEnum.BYN, CurrencyCodeEnum.EUR, EXCHANGE_RATE_BYN_EUR, BigDecimal.ONE);
+        ExchangeRateDto exchangeRateBYNRUB = new ExchangeRateDto(CurrencyCodeEnum.BYN, CurrencyCodeEnum.RUB, EXCHANGE_RATE_BYN_RUB, BigDecimal.valueOf(100.0));
 
         //CurrencyConverterImp currencyConverterImp = new CurrencyConverterImp(exchangeRateBYNUSD, exchangeRateBYNEUR, exchangeRateBYNRUB);
         CurrencyConverterImp currencyConverterImp = new CurrencyConverterImp();
         ExchangeRatesLoaderScheduler exchangeRatesLoaderScheduler = new ExchangeRatesLoaderScheduler(currencyConverterImp);
 
-        Sum baseSumBYN = new Sum(100, CurrencyCodeEnum.BYN);
+        Sum baseSumBYN = new Sum(BigDecimal.valueOf(100), CurrencyCodeEnum.BYN);
         try {
             Sum sumBYNToUSD = currencyConverterImp.exchangeSum(baseSumBYN, CurrencyCodeEnum.USD);
             Sum sumBYNToEUR = currencyConverterImp.exchangeSum(baseSumBYN, CurrencyCodeEnum.EUR);
@@ -59,7 +60,7 @@ public class Main {
             System.err.println(ex);
         }
 
-        currencyConverterImp.addExchangeRate(new ExchangeRate(CurrencyCodeEnum.BYN, CurrencyCodeEnum.ZL, 4.8, 1.0));
+        currencyConverterImp.addExchangeRate(new ExchangeRateDto(CurrencyCodeEnum.BYN, CurrencyCodeEnum.ZL, BigDecimal.valueOf(4.8f), BigDecimal.ONE));
 
         try {
             Sum sumBYNtoZL = currencyConverterImp.exchangeSum(baseSumBYN, CurrencyCodeEnum.ZL);
@@ -71,10 +72,10 @@ public class Main {
 
         while (true) {
 
-        }*/
-        } finally {
+        }
+       /*} finally {
             if (exchangeRateRepository != null)
                 exchangeRateRepository.close();
-        }
+        }*/
     }
 }

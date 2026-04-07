@@ -7,21 +7,20 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Builder
-public class ExchangeRate implements Serializable {
+public class ExchangeRateDto implements Serializable {
 
     private CurrencyCodeEnum fromCurrency;
     private CurrencyCodeEnum toCurrency;
     private BigDecimal exchangeRate;
     private BigDecimal scale;
 
-    public ExchangeRate() {}
+    public ExchangeRateDto() {}
 
-    public ExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, BigDecimal exchangeRate, BigDecimal scale) {
+    public ExchangeRateDto(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, BigDecimal exchangeRate, BigDecimal scale) {
         this.fromCurrency = fromCurrency;
         this.toCurrency = toCurrency;
         this.exchangeRate = exchangeRate;
         this.scale = scale;
-
     }
 
     public void setExchangeRate(BigDecimal exchangeRate) {
@@ -60,7 +59,7 @@ public class ExchangeRate implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExchangeRate that = (ExchangeRate) o;
+        ExchangeRateDto that = (ExchangeRateDto) o;
         return fromCurrency == that.fromCurrency
                 && toCurrency == that.toCurrency
                 && Objects.equals(exchangeRate, that.exchangeRate)
