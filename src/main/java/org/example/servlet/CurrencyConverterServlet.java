@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/")
+@WebServlet("/currencyCoverter")
 public class CurrencyConverterServlet extends HttpServlet {
 
     @Override
@@ -20,9 +20,9 @@ public class CurrencyConverterServlet extends HttpServlet {
 
         CurrencyConverter currencyConverter = (CurrencyConverter) getServletContext().getAttribute(Consts.CURRENCY_CONVERTER_SERVICE);
 
-        List<ExchangeRateDto> exchangeRateDtos = currencyConverter.getAllExchangeRates();
+        ExchangeRateDto[] exchangeRateDtos = (ExchangeRateDto[]) currencyConverter.getAllExchangeRates().toArray();
 
-        request.setAttribute("exchangeRateList", exchangeRateDtos.toArray());
+        request.setAttribute("exchangeRateList", exchangeRateDtos);
         request.setAttribute("TEST_PARAM", "TEST VALUE");
 
         response.setContentType("text/html;charset=UTF-8");

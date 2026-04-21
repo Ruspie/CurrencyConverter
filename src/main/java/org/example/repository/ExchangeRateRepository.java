@@ -2,6 +2,7 @@ package org.example.repository;
 
 import org.example.repository.entity.ExchangeRateEntity;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public interface ExchangeRateRepository extends AutoCloseable {

@@ -78,13 +78,22 @@
         </div>
         <div class="card-body">
             <div id="rates-container" class="row">
+
+                <c:forEach var="item" items="${myList}">
+                    <p>${item.name}</p>
+                </c:forEach>
+
                 <c:forEach var="exchangeRate" items="${exchangeRateList}">
                     <div class="col-md-4 rate-card">
-                        <div class="rate-currency"><span>${exchangeRate.fromCurrency.name}</span>> / <span>${exchangeRate.toCurrency.name}"</span>
+                        <div class="rate-currency">
+                            <p><span>${exchangeRate.fromCurrency.name}</span>> / <span>${exchangeRate.toCurrency.name}"</span></p>
                         </div>
-                        <div class="rate-value">${exchangeRate.exchangeRate}</div>
+                        <div class="rate-value">
+                            <p>${exchangeRate.exchangeRate}</p>
+                        </div>
                     </div>
                 </c:forEach>
+
             </div>
         </div>
     </div>
