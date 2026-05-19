@@ -1,29 +1,20 @@
 package org.example.repository.imp;
 
-import org.example.config.PropertiesLoader;
+import lombok.RequiredArgsConstructor;
 import org.example.repository.ExchangeRateRepository;
 import org.example.repository.entity.ExchangeRateEntity;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@RequiredArgsConstructor
 public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
-    private final String URL = PropertiesLoader.getProperty("database.url");
-    private final String USERNAME = PropertiesLoader.getProperty("database.username");
-    private final String PASSWORD = PropertiesLoader.getProperty("database.password");
-
     private final Connection connection;
-
-    public ExchangeRateRepositoryImpl() {
-        try {
-            this.connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Override
     public List<ExchangeRateEntity> findAll() {
@@ -56,10 +47,10 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     @Override
     public void insert(ExchangeRateEntity exchangeRate) {
         String query = """
-            INSERT INTO cur_ex.exchange_rate
-            (from_currency, id, to_currency, rate, "scale")
-            VALUES(?, nextval('cur_ex.exchange_rate_id_seq'::regclass), ?, ?, ?);
-        """;
+                    INSERT INTO cur_ex.exchange_rate
+                    (from_currency, id, to_currency, rate, "scale")
+                    VALUES(?, nextval('cur_ex.exchange_rate_id_seq'::regclass), ?, ?, ?);
+                """;
 
         int affectedRows;
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -78,13 +69,13 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     @Override
     public void delete(ExchangeRateEntity exchangeRate) {
         String query = """
-            DELETE FROM cur_ex.exchange_rate
-            WHERE
-                FROM_CURRENCY = ?
-                AND TO_CURRENCY = ?
-                AND RATE = ?
-                AND SCALE = ?
-        """;
+                    DELETE FROM cur_ex.exchange_rate
+                    WHERE
+                        FROM_CURRENCY = ?
+                        AND TO_CURRENCY = ?
+                        AND RATE = ?
+                        AND SCALE = ?
+                """;
 
         int affectedRows;
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {

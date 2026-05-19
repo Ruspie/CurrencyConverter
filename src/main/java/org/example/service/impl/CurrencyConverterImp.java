@@ -1,53 +1,37 @@
 package org.example.service.impl;
 
-import org.example.config.PropertiesLoader;
+import lombok.RequiredArgsConstructor;
 import org.example.dto.CurrencyCodeEnum;
 import org.example.dto.ExchangeRate;
 import org.example.dto.Sum;
 import org.example.exception.DataNotFoundException;
 import org.example.exception.HttpNBRBLoaderException;
+import org.example.repository.ExchangeRateRepository;
+import org.example.repository.entity.ExchangeRateEntity;
 import org.example.service.CurrencyConverter;
 import org.example.service.ExchangeRatesLoader;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+@Service
+@RequiredArgsConstructor
 public class CurrencyConverterImp implements CurrencyConverter {
 
     private final ExchangeRatesLoader exchangeRatesFileLoader;
-
-    {
-        if ("HTTP".equals(PropertiesLoader.getProperty("loading.mode")))
-            exchangeRatesFileLoader = new HttpNBRBExchangeRatesLoader();
-        else
-            exchangeRatesFileLoader = new ExchangeRatesFileLoader();
-    }
-
+    private final ExchangeRateRepository exchangeRateRepository;
 
     public List<ExchangeRate> exchangeRates = new ArrayList<>();
 
-    public CurrencyConverterImp(ExchangeRate... exchangeRates) {
-        this.exchangeRates = Arrays.asList(exchangeRates);
-    }
-
-    public CurrencyConverterImp() throws IOException, HttpNBRBLoaderException, InterruptedException {
-        loadExchangeRates();
-    }
-
-    public CurrencyConverterImp(ExchangeRate exchangeRateBYNUSD, ExchangeRate exchangeRateBYNEUR, ExchangeRate exchangeRateBYNRUB) {
-        addExchangeRate(exchangeRateBYNUSD);
-        addExchangeRate(exchangeRateBYNEUR);
-        addExchangeRate(exchangeRateBYNRUB);
-
-        generateAnotherExchangeRates(exchangeRateBYNUSD, exchangeRateBYNEUR, exchangeRateBYNRUB);
-    }
-
     public void loadExchangeRates() throws IOException, HttpNBRBLoaderException, InterruptedException {
         exchangeRates = exchangeRatesFileLoader.loadRates();
+
+        List<ExchangeRateEntity> exchangeRateEntities = exchangeRateRepository.findAll();
+        System.out.println(exchangeRateEntities);
     }
 
     private void generateAnotherExchangeRates(ExchangeRate exchangeRateBYNUSD, ExchangeRate exchangeRateBYNEUR, ExchangeRate exchangeRateBYNRUB) {

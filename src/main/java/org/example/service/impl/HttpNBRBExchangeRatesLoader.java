@@ -7,6 +7,10 @@ import org.example.dto.ExchangeRate;
 import org.example.dto.external.NBRBExchangeRate;
 import org.example.exception.HttpNBRBLoaderException;
 import org.example.service.ExchangeRatesLoader;
+import org.modelmapper.ModelMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URI;
@@ -18,14 +22,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
+@ConditionalOnProperty(name = "loading.mode", havingValue = "http")
 public class HttpNBRBExchangeRatesLoader implements ExchangeRatesLoader {
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final ModelMapper modelMapper;
 
-    public HttpNBRBExchangeRatesLoader() {
+    public HttpNBRBExchangeRatesLoader(ModelMapper modelMapper) {
         this.objectMapper = new ObjectMapper();
         this.httpClient = HttpClient.newHttpClient();
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -56,7 +64,7 @@ public class HttpNBRBExchangeRatesLoader implements ExchangeRatesLoader {
                         .toList()
                         .contains(nbrbExchangeRate.getToCurrency())
                 )
-                .map(nbrbExchangeRate -> ModelMapperConfig.getInstance().map(nbrbExchangeRate, ExchangeRate.class))
+                .map(nbrbExchangeRate -> modelMapper.map(nbrbExchangeRate, ExchangeRate.class))
                 .collect(Collectors.toList());
     }
 

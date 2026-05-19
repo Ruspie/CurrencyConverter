@@ -1,9 +1,12 @@
 package org.example.service.impl;
 
-import org.example.config.PropertiesLoader;
+import lombok.RequiredArgsConstructor;
 import org.example.dto.CurrencyCodeEnum;
 import org.example.dto.ExchangeRate;
 import org.example.service.ExchangeRatesLoader;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -11,7 +14,17 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@ConditionalOnProperty(name = "loading.mode", havingValue = "file")
+@RequiredArgsConstructor
 public class ExchangeRatesFileLoader implements ExchangeRatesLoader {
+
+    @Value("${loading.filePath}")
+    private String loadingPath;
+
+    /*public ExchangeRatesFileLoader(PropertiesWorker properties) {
+        this.properties = properties;
+    }*/
 
     @Override
     public List<ExchangeRate> loadRates() {
@@ -19,7 +32,7 @@ public class ExchangeRatesFileLoader implements ExchangeRatesLoader {
 
         List<ExchangeRate> exchangeRates = new ArrayList<>();
 
-        File file = new File(PropertiesLoader.getProperty("loading.filePath"));
+        File file = new File(loadingPath);
 
         try (BufferedReader fileReader = new BufferedReader(new FileReader(file))) {
             String exchangeRateLine;

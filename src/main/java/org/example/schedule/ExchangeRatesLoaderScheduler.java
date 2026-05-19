@@ -1,24 +1,24 @@
 package org.example.schedule;
 
-import org.example.config.PropertiesLoader;
+import lombok.RequiredArgsConstructor;
 import org.example.exception.HttpNBRBLoaderException;
 import org.example.service.CurrencyConverter;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@RequiredArgsConstructor
 public class ExchangeRatesLoaderScheduler {
 
-    public ExchangeRatesLoaderScheduler(CurrencyConverter currencyConverter) {
+    public void initScheduler(CurrencyConverter currencyConverter, String executionTimeString) {
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
-        LocalTime executionTime = LocalTime.parse(PropertiesLoader.getProperty("scheduler.executionTime"), DateTimeFormatter.ofPattern("HH:mm"));
+        LocalTime executionTime = LocalTime.parse(executionTimeString, DateTimeFormatter.ofPattern("HH:mm"));
         LocalTime now = LocalTime.now();
 
         long initialDelay = Duration.between(now, executionTime).toMillis();
