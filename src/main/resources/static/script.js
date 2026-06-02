@@ -1,4 +1,5 @@
 // Базовый URL вашего REST API (измените порт и путь под ваш сервер)
+//const API_BASE_URL = '/api';
 const API_BASE_URL = 'http://localhost:8080/api';
 
 // Элементы DOM
