@@ -26,6 +26,7 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             //preparedStatement.setLong(1, 1L);
             ResultSet resultSet = preparedStatement.executeQuery();
+
             while (resultSet.next()) {
                 ExchangeRateEntity exchangeRate = ExchangeRateEntity.builder()
                         .fromCurrency(resultSet.getString("from_currency"))
@@ -60,6 +61,7 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
             preparedStatement.setBigDecimal(4, exchangeRate.getScale());
             affectedRows = preparedStatement.executeUpdate();
 
+            connection.commit();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
