@@ -18,7 +18,7 @@ public class ApplicationContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        try {
+        /*try {
             currencyConverter = new CurrencyConverterImp();
         } catch (IOException | HttpNBRBLoaderException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -26,7 +26,7 @@ public class ApplicationContextListener implements ServletContextListener {
             throw new RuntimeException(e);
         }
         ServletContext servletContext = sce.getServletContext();
-        servletContext.setAttribute(Consts.CURRENCY_CONVERTER_SERVICE, currencyConverter);
+        servletContext.setAttribute(Consts.CURRENCY_CONVERTER_SERVICE, currencyConverter);*/
 
         ServletContextListener.super.contextInitialized(sce);
     }

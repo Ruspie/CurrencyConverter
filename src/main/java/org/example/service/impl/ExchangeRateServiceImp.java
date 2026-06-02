@@ -1,7 +1,6 @@
 package org.example.service.impl;
 
-import org.example.config.ModelMapperConfig;
-import org.example.dto.ExchangeRate;
+import org.example.dto.ExchangeRateDto;
 import org.example.repository.ExchangeRateRepository;
 import org.example.repository.entity.ExchangeRateEntity;
 import org.modelmapper.ModelMapper;
@@ -21,21 +20,21 @@ public class ExchangeRateServiceImp {
         this.modelMapper = modelMapper;
     }
 
-    public List<ExchangeRate> getAllExchangeRates() {
+    public List<ExchangeRateDto> getAllExchangeRates() {
         List<ExchangeRateEntity> exchangeRateEntities = exchangeRateRepository.findAll();
 
         return exchangeRateEntities.stream()
-                .map(exchangeRateEntity -> modelMapper.map(exchangeRateEntity, ExchangeRate.class))
+                .map(exchangeRateEntity -> modelMapper.map(exchangeRateEntity, ExchangeRateDto.class))
                 .collect(Collectors.toList());
     }
 
-    public void saveExchangeRate(ExchangeRate exchangeRate) {
+    public void saveExchangeRate(ExchangeRateDto exchangeRate) {
         ExchangeRateEntity exchangeRateEntity = modelMapper.map(exchangeRate, ExchangeRateEntity.class);
 
         exchangeRateRepository.insert(exchangeRateEntity);
     }
 
-    public void deleteExchangeRate(ExchangeRate exchangeRate) {
+    public void deleteExchangeRate(ExchangeRateDto exchangeRate) {
         ExchangeRateEntity exchangeRateEntity = modelMapper.map(exchangeRate, ExchangeRateEntity.class);
 
         exchangeRateRepository.delete(exchangeRateEntity);

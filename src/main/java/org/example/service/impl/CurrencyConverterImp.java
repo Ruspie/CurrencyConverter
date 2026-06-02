@@ -2,7 +2,7 @@ package org.example.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.dto.CurrencyCodeEnum;
-import org.example.dto.ExchangeRate;
+import org.example.dto.ExchangeRateDto;
 import org.example.dto.Sum;
 import org.example.exception.DataNotFoundException;
 import org.example.exception.HttpNBRBLoaderException;
@@ -10,6 +10,7 @@ import org.example.repository.ExchangeRateRepository;
 import org.example.repository.entity.ExchangeRateEntity;
 import org.example.service.CurrencyConverter;
 import org.example.service.ExchangeRatesLoader;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +26,9 @@ public class CurrencyConverterImp implements CurrencyConverter {
 
     private final ExchangeRatesLoader exchangeRatesFileLoader;
     private final ExchangeRateRepository exchangeRateRepository;
+    private final ModelMapper modelMapper;
 
-    public List<ExchangeRate> exchangeRates = new ArrayList<>();
+    public List<ExchangeRateDto> exchangeRates = new ArrayList<>();
 
     public void loadExchangeRates() throws IOException, HttpNBRBLoaderException, InterruptedException {
         exchangeRates = exchangeRatesFileLoader.loadRates();
@@ -34,23 +37,33 @@ public class CurrencyConverterImp implements CurrencyConverter {
         System.out.println(exchangeRateEntities);
     }
 
-    private void generateAnotherExchangeRates(ExchangeRate exchangeRateBYNUSD, ExchangeRate exchangeRateBYNEUR, ExchangeRate exchangeRateBYNRUB) {
-        ExchangeRate exchangeRateUSDBYN = new ExchangeRate(CurrencyCodeEnum.USD, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNUSD.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRate exchangeRateEURBYN = new ExchangeRate(CurrencyCodeEnum.EUR, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNEUR.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRate exchangeRateRUBBYN = new ExchangeRate(CurrencyCodeEnum.RUB, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNRUB.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.valueOf(1.0 / 100.0));
+    @Override
+    public List<ExchangeRateDto> getAllExchangeRates() {
+        return exchangeRateRepository.findAll()
+                .stream()
+                .map(exchangeRateEntity ->
+                        modelMapper.map(exchangeRateEntity, ExchangeRateDto.class)
+                )
+                .collect(Collectors.toList());
+    }
+
+    private void generateAnotherExchangeRates(ExchangeRateDto exchangeRateBYNUSD, ExchangeRateDto exchangeRateBYNEUR, ExchangeRateDto exchangeRateBYNRUB) {
+        ExchangeRateDto exchangeRateUSDBYN = new ExchangeRateDto(CurrencyCodeEnum.USD, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNUSD.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
+        ExchangeRateDto exchangeRateEURBYN = new ExchangeRateDto(CurrencyCodeEnum.EUR, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNEUR.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
+        ExchangeRateDto exchangeRateRUBBYN = new ExchangeRateDto(CurrencyCodeEnum.RUB, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNRUB.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.valueOf(1.0 / 100.0));
 
         addExchangeRate(exchangeRateUSDBYN);
         addExchangeRate(exchangeRateEURBYN);
         addExchangeRate(exchangeRateRUBBYN);
 
-        ExchangeRate exchangeRateUSDEUR = new ExchangeRate(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, exchangeRateUSDBYN.getExchangeRate().divide(exchangeRateEURBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRate exchangeRateEURUSD = new ExchangeRate(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateUSDEUR.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
+        ExchangeRateDto exchangeRateUSDEUR = new ExchangeRateDto(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, exchangeRateUSDBYN.getExchangeRate().divide(exchangeRateEURBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
+        ExchangeRateDto exchangeRateEURUSD = new ExchangeRateDto(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateUSDEUR.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
 
-        ExchangeRate exchangeRateRUBUSD = new ExchangeRate(CurrencyCodeEnum.RUB, CurrencyCodeEnum.USD, exchangeRateRUBBYN.getExchangeRate().divide(exchangeRateUSDBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRate exchangeRateUSDRUB = new ExchangeRate(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateRUBUSD.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
+        ExchangeRateDto exchangeRateRUBUSD = new ExchangeRateDto(CurrencyCodeEnum.RUB, CurrencyCodeEnum.USD, exchangeRateRUBBYN.getExchangeRate().divide(exchangeRateUSDBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
+        ExchangeRateDto exchangeRateUSDRUB = new ExchangeRateDto(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateRUBUSD.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
 
-        ExchangeRate exchangeRateEURRUB = new ExchangeRate(CurrencyCodeEnum.EUR, CurrencyCodeEnum.RUB, exchangeRateEURBYN.getExchangeRate().divide(exchangeRateRUBBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRate exchangeRateRUBEUR = new ExchangeRate(CurrencyCodeEnum.RUB, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateEURRUB.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
+        ExchangeRateDto exchangeRateEURRUB = new ExchangeRateDto(CurrencyCodeEnum.EUR, CurrencyCodeEnum.RUB, exchangeRateEURBYN.getExchangeRate().divide(exchangeRateRUBBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
+        ExchangeRateDto exchangeRateRUBEUR = new ExchangeRateDto(CurrencyCodeEnum.RUB, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateEURRUB.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
 
         addExchangeRate(exchangeRateUSDEUR);
         addExchangeRate(exchangeRateEURUSD);
@@ -60,8 +73,8 @@ public class CurrencyConverterImp implements CurrencyConverter {
         addExchangeRate(exchangeRateRUBEUR);
     }
 
-    public boolean addExchangeRate(ExchangeRate exchangeRate) {
-        for (ExchangeRate rate : exchangeRates) {
+    public boolean addExchangeRate(ExchangeRateDto exchangeRate) {
+        for (ExchangeRateDto rate : exchangeRates) {
             if (rate != null) {
                 if (rate.getFromCurrency().equals(exchangeRate.getFromCurrency())
                         && rate.getToCurrency().equals(exchangeRate.getToCurrency())) {
@@ -75,8 +88,8 @@ public class CurrencyConverterImp implements CurrencyConverter {
         return true;
     }
 
-    private ExchangeRate getCurrentExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency) {
-        for (ExchangeRate rate : exchangeRates) {
+    private ExchangeRateDto getCurrentExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency) {
+        for (ExchangeRateDto rate : exchangeRates) {
             if (rate != null) {
 
                 if (rate.getFromCurrency().equals(fromCurrency)
@@ -91,7 +104,7 @@ public class CurrencyConverterImp implements CurrencyConverter {
 
     @Override
     public Sum exchangeSum(Sum sum, CurrencyCodeEnum destinationCurrency) throws DataNotFoundException {
-        ExchangeRate currentExchangeRate = getCurrentExchangeRate(sum.getCurrency(), destinationCurrency);
+        ExchangeRateDto currentExchangeRate = getCurrentExchangeRate(sum.getCurrency(), destinationCurrency);
 
         if (currentExchangeRate == null) {
             throw new DataNotFoundException("Не найден курс конверсии", sum.getCurrency(), destinationCurrency);
@@ -108,7 +121,7 @@ public class CurrencyConverterImp implements CurrencyConverter {
 
     @Override
     public void printAllCurrencyExchangeRates() {
-        for (ExchangeRate exchangeRate : exchangeRates) {
+        for (ExchangeRateDto exchangeRate : exchangeRates) {
             if (exchangeRate != null)
                 System.out.println(exchangeRate);
         }

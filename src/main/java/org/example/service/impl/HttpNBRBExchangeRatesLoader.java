@@ -1,15 +1,13 @@
 package org.example.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.config.ModelMapperConfig;
 import org.example.dto.CurrencyCodeEnum;
-import org.example.dto.ExchangeRate;
+import org.example.dto.ExchangeRateDto;
 import org.example.dto.external.NBRBExchangeRate;
 import org.example.exception.HttpNBRBLoaderException;
 import org.example.service.ExchangeRatesLoader;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -37,11 +35,11 @@ public class HttpNBRBExchangeRatesLoader implements ExchangeRatesLoader {
     }
 
     @Override
-    public List<ExchangeRate> loadRates() throws IOException, InterruptedException, HttpNBRBLoaderException {
+    public List<ExchangeRateDto> loadRates() throws IOException, InterruptedException, HttpNBRBLoaderException {
 
         System.out.println("Я http");
 
-        List<ExchangeRate> exchangeRates = new ArrayList<>();
+        List<ExchangeRateDto> exchangeRates = new ArrayList<>();
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.nbrb.by/exrates/rates?periodicity=0"))
@@ -64,7 +62,7 @@ public class HttpNBRBExchangeRatesLoader implements ExchangeRatesLoader {
                         .toList()
                         .contains(nbrbExchangeRate.getToCurrency())
                 )
-                .map(nbrbExchangeRate -> modelMapper.map(nbrbExchangeRate, ExchangeRate.class))
+                .map(nbrbExchangeRate -> modelMapper.map(nbrbExchangeRate, ExchangeRateDto.class))
                 .collect(Collectors.toList());
     }
 
