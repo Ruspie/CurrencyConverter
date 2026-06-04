@@ -1,6 +1,6 @@
 package org.example.exception;
 
-import org.example.dto.CurrencyCodeEnum;
+import org.example.dto.enums.CurrencyCodeEnum;
 
 public class DataNotFoundException extends Exception {
 

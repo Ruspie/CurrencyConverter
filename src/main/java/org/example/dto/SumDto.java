@@ -1,16 +1,20 @@
 package org.example.dto;
 
-public class Sum {
+import org.example.dto.enums.CurrencyCodeEnum;
 
-    private final double sum;
+import java.math.BigDecimal;
+
+public class SumDto {
+
+    private final BigDecimal sum;
     private final CurrencyCodeEnum currency;
 
-    public Sum(double sum, CurrencyCodeEnum currency) {
+    public SumDto(BigDecimal sum, CurrencyCodeEnum currency) {
         this.sum = sum;
         this.currency = currency;
     }
 
-    public double getSum() {
+    public BigDecimal getSum() {
         return sum;
     }
 
@@ -18,8 +22,8 @@ public class Sum {
         return currency;
     }
 
-    public void print(Sum baseSum) {
-        System.out.printf("base sum = %s, converted sum = %s%n", baseSum, this);
+    public void print(SumDto baseSumDto) {
+        System.out.printf("base sum = %s, converted sum = %s%n", baseSumDto, this);
     }
 
     @Override
