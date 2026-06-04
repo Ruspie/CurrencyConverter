@@ -3,18 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Конвертер валют (REST API)</title>
+    <title>Конвертер валют XP</title>
+    <!-- Шрифт Tahoma -->
+    <link href="https://fonts.googleapis.com/css2?family=Tahoma&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="dop_style.css">
 </head>
 <body>
-<div class="container mt-5">
-    <h1 class="text-center mb-4">Конвертер валют</h1>
 
-    <!-- Основной блок конвертера -->
-    <div class="card mb-5">
-        <div class="card-body p-4">
+<!-- Экран BSOD (изначально скрыт) -->
+<div id="bsod-screen" class="bsod-hidden">
+    <p>A problem has been detected and Windows has been shut down to prevent damage</p>
+    <p>to your currency converter application.</p>
+    <p>CURRENCY_CONVERSION_SUCCESSFUL</p>
+    <p>If this is the first time you've seen this Stop error screen,</p>
+    <p>restart your computer. If this screen appears again, follow</p>
+    <p>these steps:</p>
+    <p>Check to make sure any new currency rates are properly installed.</p>
+    <p>Technical information:</p>
+    <p>*** STOP: 0x000000D1 (0x0000000C, 0x00000002, 0x00000000, 0xF73120AE)</p>
+    <p class="blink">Press any key to return to desktop _</p>
+</div>
+
+<div class="xp-desktop">
+    <!-- Классическое окно Windows XP -->
+    <div class="xp-window main-wrapper">
+        <!-- Синий глянцевый заголовок -->
+        <div class="xp-title-bar">
+            <div class="xp-title-text">🌐 Конвертер валют 1.0</div>
+            <div class="xp-window-controls">
+                <button class="xp-btn-minimize">_</button>
+                <button class="xp-btn-maximize">⬜</button>
+                <button class="xp-btn-close">X</button>
+            </div>
+        </div>
+
+        <!-- Рабочая область окна -->
+        <div class="xp-window-body">
             <div class="row mb-3">
                 <div class="col-md-12">
                     <label for="amount" class="form-label">Сумма:</label>
@@ -25,37 +51,38 @@
             <div class="row align-items-end mb-3">
                 <div class="col-md-5">
                     <label for="from-currency" class="form-label">Из:</label>
-                    <select class="form-select" id="from-currency">
-                        <!-- Наполняется динамически из API -->
-                    </select>
+                    <select class="form-select" id="from-currency"></select>
                 </div>
 
-                <div class="col-md-2 text-center">
-                    <button id="swap-btn" class="btn btn-outline-primary">⇄</button>
+                <div class="col-md-2 text-center mb-1">
+                    <button id="swap-btn" class="btn">⇄</button>
                 </div>
 
                 <div class="col-md-5">
                     <label for="to-currency" class="form-label">В:</label>
-                    <select class="form-select" id="to-currency">
-                        <!-- Наполняется динамически из API -->
-                    </select>
+                    <select class="form-select" id="to-currency"></select>
                 </div>
             </div>
 
-            <button id="convert-btn" class="btn btn-success w-100 mb-3">Конвертировать</button>
-            <div id="result" class="alert alert-info text-center" role="alert">Введите сумму для расчета</div>
+            <!-- Легендарная зеленая кнопка а-ля Пуск -->
+            <button id="convert-btn" class="btn w-100 mb-3">Конвертировать</button>
+            <div id="result" class="xp-status-bar" role="alert">Введите сумму для расчета</div>
         </div>
     </div>
 
-    <!-- Блок популярных курсов -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Популярные курсы валют</h2>
+    <!-- Блок популярных курсов в виде второго окна -->
+    <div class="xp-window main-wrapper mt-4">
+        <div class="xp-title-bar">
+            <div class="xp-title-text">📂 Популярные курсы валют</div>
+            <div class="xp-window-controls">
+                <button class="xp-btn-minimize">_</button>
+                <button class="xp-btn-maximize">⬜</button>
+                <button class="xp-btn-close">X</button>
+            </div>
         </div>
-        <div class="card-body">
-            <!-- Сюда JS вставит количество записей -->
-            <p id="rates-count" class="text-muted small"></p>
-            <div id="rates-container" class="row">
+        <div class="xp-window-body">
+            <p id="rates-count" class="xp-count-text"></p>
+            <div id="rates-container" class="row g-2">
                 <!-- Наполняется динамически из API -->
             </div>
         </div>

@@ -1,18 +1,180 @@
-.rate-card {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 10px;
-    background-color: #f8f9fa;
+/* Рендерим легендарные обои Bliss на фоне */
+body {
+    background: #5a7edc url('https://wallscloud.net/img/resize/1920/1080/MM/2016-09-29-windows-xp-bliss-l5Eg.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+    font-family: 'Tahoma', sans-serif !important;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    overflow-x: hidden;
 }
 
-.rate-currency {
+.main-wrapper {
+    max-width: 500px !important;
+    margin: 0 auto;
+}
+
+/* Стилизация классического окна Windows XP */
+.xp-window {
+    background: #ece9d8 !important;
+    border: 3px solid #0054e3 !important;
+    border-top-width: 1px !important;
+    border-radius: 7px 7px 0 0 !important;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.4) !important;
+    overflow: hidden;
+}
+
+/* Синий глянцевый заголовок (Luna Theme) */
+.xp-title-bar {
+    background: linear-gradient(to bottom, #0058e6 0%, #0073ea 10%, #0054e3 50%, #003dd7 100%);
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
     font-weight: bold;
-    color: #495057;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    font-size: 13px;
+    letter-spacing: 0.5px;
 }
 
+/* Кнопки управления окном (Свернуть / Закрыть) */
+.xp-window-controls button {
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    font-size: 11px;
+    border: 1px solid #ffffff;
+    border-radius: 3px;
+    color: white;
+    width: 22px;
+    height: 22px;
+    margin-left: 2px;
+    cursor: pointer;
+    box-shadow: inset 1px 1px 1px rgba(255,255,255,0.4);
+    vertical-align: middle;
+}
+
+.xp-btn-minimize, .xp-btn-maximize {
+    background: linear-gradient(to bottom, #3c93ee 0%, #1c5ab6 100%);
+}
+.xp-btn-close {
+    background: linear-gradient(to bottom, #f37b5a 0%, #e32500 50%, #bc1400 100%) !important;
+    border-color: #7c0404 !important;
+}
+.xp-btn-close:hover {
+    filter: brightness(1.2);
+}
+
+/* Тело окна */
+.xp-window-body {
+    padding: 15px !important;
+}
+
+.form-label {
+    color: #000000 !important;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+/* Объемные рельефные поля ввода (Bevel-эффект из 2001) */
+.form-control, .form-select {
+    background-color: #ffffff !important;
+    border-top: 2px solid #716f64 !important;
+    border-left: 2px solid #716f64 !important;
+    border-right: 1px solid #f1efe7 !important;
+    border-bottom: 1px solid #f1efe7 !important;
+    color: #000000 !important;
+    border-radius: 0px !important;
+    font-size: 13px !important;
+    padding: 4px 6px !important;
+}
+
+/* Знаменитая оливково-зеленая кнопка «Пуск» */
+#convert-btn {
+    background: linear-gradient(to bottom, #bdb69a 0%, #7ca15a 10%, #4c802b 40%, #3a661f 100%) !important;
+    border: 1px solid #2a4d15 !important;
+    border-radius: 3px !important;
+    color: white !important;
+    font-weight: bold !important;
+    font-size: 14px !important;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+    box-shadow: inset 1px 1px 2px rgba(255,255,255,0.5) !important;
+    padding: 8px !important;
+}
+#convert-btn:hover {
+    filter: brightness(1.1);
+}
+#convert-btn:active {
+    background: linear-gradient(to bottom, #3a661f 0%, #4c802b 100%) !important;
+}
+
+/* Кнопка реверса */
+#swap-btn {
+    background: linear-gradient(to bottom, #ffffff 0%, #eaeaea 100%) !important;
+    border: 1px solid #716f64 !important;
+    border-radius: 3px !important;
+    color: #000000 !important;
+    font-size: 12px !important;
+    padding: 3px 10px !important;
+}
+
+/* Серая стандартная строка состояния (Status Bar) */
+.xp-status-bar, .xp-count-text {
+    background: #f1efe7 !important;
+    border: 1px solid #aca899 !important;
+    padding: 6px !important;
+    color: #000000 !important;
+    font-size: 12px !important;
+    text-align: left !important;
+    margin-top: 10px;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Карточки популярных валют */
+.rate-card {
+    background: #ffffff !important;
+    border-top: 1px solid #716f64 !important;
+    border-left: 1px solid #716f64 !important;
+    border-right: 1px solid #aca899 !important;
+    border-bottom: 1px solid #aca899 !important;
+    padding: 8px !important;
+    text-align: center;
+}
+.rate-currency {
+    font-size: 11px !important;
+    color: #555555 !important;
+    font-weight: bold;
+}
 .rate-value {
-    color: #28a745;
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 14px !important;
+    color: #0000ed !important; /* Классический синий цвет текста */
+    font-weight: bold;
+}
+
+/* ГРАНДИОЗНЫЙ ЭФФЕКТ: СИНИЙ ЭКРАН СМЕРТИ (BSOD) */
+#bsod-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #0000aa;
+    color: #ffffff;
+    font-family: 'Lucida Console', Courier, monospace !important;
+    font-size: 18px;
+    padding: 50px;
+    box-sizing: border-box;
+    z-index: 99999;
+    line-height: 1.5;
+    cursor: pointer;
+}
+.bsod-hidden {
+    display: none;
+}
+.blink {
+    animation: xp-blink 1s infinite;
+}
+@keyframes xp-blink {
+    50% { opacity: 0; }
 }

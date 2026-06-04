@@ -102,27 +102,20 @@ async function convertCurrency() {
         const data = await response.json();
 
         resultDiv.textContent = `${amount.toFixed(2)} ${from} = ${Number(data.sum).toFixed(2)} ${data.currency}`;
-        resultDiv.className = 'xp-status-bar'; // меняем класс на стиль XP
+        resultDiv.className = 'alert alert-info text-center';
 
-        // 🔥 ДОБАВЛЯЕМ ГРАНДИОЗНЫЙ ЭФФЕКТ СИНИЕГО ЭКРАНА (BSOD):
-        const bsod = document.getElementById('bsod-screen');
-        if (bsod) {
-            bsod.className = ''; // Показываем экран BSOD
-
-            // Через 4 секунды возвращаем пользователя обратно на рабочий стол XP
-            setTimeout(() => {
-                bsod.className = 'bsod-hidden';
-            }, 4000);
-
-            // Также возвращаем на рабочий стол при клике на экран
-            bsod.onclick = () => {
-                bsod.className = 'bsod-hidden';
-            };
-        }
+        // 🔥 ВОТ ЭТОТ КУСОК ДОБАВЛЯЕМ ДЛЯ ГРАНДИОЗНОГО САЛЮТА ПРИ УСПЕШНОМ РАСЧЕТЕ:
+        confetti({
+            particleCount: 120,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b']
+        });
 
     } catch (error) {
         console.error('Ошибка при конвертации:', error);
-        resultDiv.textContent = 'Ошибка системы. Выполните дамп памяти.';
+        resultDiv.textContent = 'Ошибка сервера при расчете';
+        resultDiv.className = 'alert alert-danger text-center';
     }
 }
 
