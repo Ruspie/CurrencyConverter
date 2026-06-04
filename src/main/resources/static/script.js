@@ -16,16 +16,27 @@ const ratesCountText = document.getElementById('rates-count');
 async function loadCurrencies() {
     try {
         const response = await fetch(`${API_BASE_URL}/currencies`);
-        const currencies = await response.json(); // Ожидаем массив строк, например: ["USD", "EUR", "RUB", "GBP", "JPY"]
+        const exchangeRates = await response.json(); // Приходит массив объектов
 
+        // Собираем уникальные коды валют из всех объектов (и "из", и "в")
+        const uniqueCurrencies = new Set();
+        exchangeRates.forEach(item => {
+            if (item.fromCurrency) uniqueCurrencies.add(item.fromCurrency);
+            if (item.toCurrency) uniqueCurrencies.add(item.toCurrency);
+        });
+
+        // Превращаем в массив и сортируем по алфавиту для красоты
+        const sortedCurrencies = Array.from(uniqueCurrencies).sort();
+
+        // Предполагаем, что переменные fromCurrency и toCurrency уже найдены через document.getElementById
         fromCurrency.innerHTML = '';
         toCurrency.innerHTML = '';
 
-        currencies.forEach(code => {
+        sortedCurrencies.forEach(code => {
             const optFrom = new Option(code, code);
             const optTo = new Option(code, code);
 
-            // Устанавливаем дефолтные значения из вашего старого кода
+            // Устанавливаем дефолтные значения
             if (code === 'EUR') optFrom.selected = true;
             if (code === 'RUB') optTo.selected = true;
 
@@ -41,17 +52,22 @@ async function loadCurrencies() {
 async function loadPopularRates() {
     try {
         const response = await fetch(`${API_BASE_URL}/rates`);
-        const rates = await response.json(); // Ожидаем массив объектов exchangeRateList
+        const rates = await response.json(); // Массив объектов с exchangeRate и scale
 
+        // Переменные ratesContainer и ratesCountText должны быть объявлены выше через document.getElementById
         ratesContainer.innerHTML = '';
         ratesCountText.textContent = `Найдено записей: ${rates.length}`;
 
         rates.forEach(rate => {
             const card = document.createElement('div');
             card.className = 'col-md-4';
+
+            // Если масштаб (scale) равен 1, пишем просто код валюты. Если нет — пишем номинал, например "100 JPY"
+            const fromDisplay = Number(rate.scale) === 1 ? rate.fromCurrency : `${Number(rate.scale)} ${rate.fromCurrency}`;
+
             card.innerHTML = `
                 <div class="rate-card text-center">
-                    <div class="rate-currency">${rate.fromCurrency} / ${rate.toCurrency}</div>
+                    <div class="rate-currency">${fromDisplay} / ${rate.toCurrency}</div>
                     <div class="rate-value">${Number(rate.exchangeRate).toFixed(4)}</div>
                 </div>
             `;
@@ -65,6 +81,7 @@ async function loadPopularRates() {
 
 // 3. Запрос на конвертацию через сервер
 async function convertCurrency() {
+    // Предполагается, что amountInput, fromCurrency, toCurrency и resultDiv объявлены выше через document.getElementById
     const amount = parseFloat(amountInput.value);
     const from = fromCurrency.value;
     const to = toCurrency.value;
@@ -78,9 +95,15 @@ async function convertCurrency() {
     try {
         // Отправляем GET запрос вида: /api/convert?amount=100&from=EUR&to=RUB
         const response = await fetch(`${API_BASE_URL}/convert?amount=${amount}&from=${from}&to=${to}`);
-        const data = await response.json(); // Ожидаем объект { result: X.XX }
 
-        resultDiv.textContent = `${amount.toFixed(2)} ${from} = ${Number(data.result).toFixed(2)} ${to}`;
+        if (!response.ok) {
+            throw new Error('Ошибка сети или неверный ответ сервера');
+        }
+
+        const data = await response.json(); // Приходит объект { "sum": 3.076923, "currency": "BYN" }
+
+        // Используем data.sum и data.currency из вашего нового JSON
+        resultDiv.textContent = `${amount.toFixed(2)} ${from} = ${Number(data.sum).toFixed(2)} ${data.currency}`;
         resultDiv.className = 'alert alert-info text-center';
     } catch (error) {
         console.error('Ошибка при конвертации:', error);
