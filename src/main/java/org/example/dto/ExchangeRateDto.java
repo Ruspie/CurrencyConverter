@@ -1,6 +1,7 @@
 package org.example.dto;
 
 import lombok.Builder;
+import org.example.dto.enums.CurrencyCodeEnum;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

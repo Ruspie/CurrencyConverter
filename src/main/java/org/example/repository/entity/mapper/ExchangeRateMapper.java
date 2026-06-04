@@ -2,9 +2,9 @@ package org.example.repository.entity.mapper;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.example.dto.CurrencyCodeEnum;
+import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.dto.ExchangeRateDto;
-import org.example.dto.external.NBRBExchangeRate;
+import org.example.dto.external.NBRBExchangeRateDto;
 import org.example.repository.entity.ExchangeRateEntity;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
@@ -21,12 +21,12 @@ public class ExchangeRateMapper {
         Converter<String, CurrencyCodeEnum> stringCurrencyCodeEnumConverter = mappingContext -> CurrencyCodeEnum.valueOf(mappingContext.getSource());
         Converter<CurrencyCodeEnum, String> currencyCodeEnumStringConverter = mappingContext -> mappingContext.getSource().name();
 
-        modelMapper.typeMap(NBRBExchangeRate.class, ExchangeRateDto.class)
+        modelMapper.typeMap(NBRBExchangeRateDto.class, ExchangeRateDto.class)
                 .addMappings(mapper -> {
-                    mapper.using(stringCurrencyCodeEnumConverter).map(nbrbExchangeRate -> "BYN", ExchangeRateDto::setFromCurrency);
-                    mapper.using(stringCurrencyCodeEnumConverter).map(NBRBExchangeRate::getToCurrency, ExchangeRateDto::setToCurrency);
-                    mapper.map(NBRBExchangeRate::getScale, ExchangeRateDto::setScale);
-                    mapper.map(NBRBExchangeRate::getExchangeRate, ExchangeRateDto::setExchangeRate);
+                    mapper.using(stringCurrencyCodeEnumConverter).map(nbrbExchangeRateDto -> "BYN", ExchangeRateDto::setFromCurrency);
+                    mapper.using(stringCurrencyCodeEnumConverter).map(NBRBExchangeRateDto::getToCurrency, ExchangeRateDto::setToCurrency);
+                    mapper.map(NBRBExchangeRateDto::getScale, ExchangeRateDto::setScale);
+                    mapper.map(NBRBExchangeRateDto::getExchangeRate, ExchangeRateDto::setExchangeRate);
                 });
 
         modelMapper.typeMap(ExchangeRateEntity.class, ExchangeRateDto.class)

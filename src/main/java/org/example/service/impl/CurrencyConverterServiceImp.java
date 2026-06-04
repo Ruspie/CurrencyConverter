@@ -1,15 +1,15 @@
 package org.example.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.dto.CurrencyCodeEnum;
+import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.dto.ExchangeRateDto;
-import org.example.dto.Sum;
+import org.example.dto.SumDto;
 import org.example.exception.DataNotFoundException;
 import org.example.exception.HttpNBRBLoaderException;
 import org.example.repository.ExchangeRateRepository;
 import org.example.repository.entity.ExchangeRateEntity;
-import org.example.service.CurrencyConverter;
-import org.example.service.ExchangeRatesLoader;
+import org.example.service.CurrencyConverterService;
+import org.example.service.ExchangeRatesLoaderService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -22,16 +22,16 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CurrencyConverterImp implements CurrencyConverter {
+public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
-    private final ExchangeRatesLoader exchangeRatesFileLoader;
+    private final ExchangeRatesLoaderService exchangeRatesFileLoader;
     private final ExchangeRateRepository exchangeRateRepository;
     private final ModelMapper modelMapper;
 
     public List<ExchangeRateDto> exchangeRates = new ArrayList<>();
 
     public void loadExchangeRates() throws IOException, HttpNBRBLoaderException, InterruptedException {
-        exchangeRates = exchangeRatesFileLoader.loadRates();
+        exchangeRatesFileLoader.loadRates();
 
         List<ExchangeRateEntity> exchangeRateEntities = exchangeRateRepository.findAll();
         System.out.println(exchangeRateEntities);
@@ -103,20 +103,25 @@ public class CurrencyConverterImp implements CurrencyConverter {
     }
 
     @Override
-    public Sum exchangeSum(Sum sum, CurrencyCodeEnum destinationCurrency) throws DataNotFoundException {
-        ExchangeRateDto currentExchangeRate = getCurrentExchangeRate(sum.getCurrency(), destinationCurrency);
+    public SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency) throws DataNotFoundException {
+        List<ExchangeRateEntity> currentExchangeRateList = exchangeRateRepository.findAll();
 
-        if (currentExchangeRate == null) {
-            throw new DataNotFoundException("Не найден курс конверсии", sum.getCurrency(), destinationCurrency);
-        }
+        ExchangeRateEntity currentExchangeRate = currentExchangeRateList.stream()
+                .filter(exchangeRateEntity ->
+                        exchangeRateEntity.getFromCurrency().equals(sumDto.getCurrency().name())
+                                && exchangeRateEntity.getToCurrency().equals(destinationCurrency.name())
+                )
+                .findFirst()
+                .orElseThrow(() -> new DataNotFoundException("Не найден курс конверсии", sumDto.getCurrency(), destinationCurrency));
 
-        BigDecimal result = sum.getSum()
-                .divide(currentExchangeRate.getExchangeRate(), 10, RoundingMode.HALF_UP)
-                .multiply(currentExchangeRate.getScale());
+        BigDecimal result = sumDto.getSum()
+                .multiply(currentExchangeRate.getRate())
+                .multiply(currentExchangeRate.getScale())
+                .setScale(2, RoundingMode.HALF_UP);
 
-        Sum sumResult = new Sum(result, destinationCurrency);
-        sumResult.print(sum);
-        return sumResult;
+        SumDto sumDtoResult = new SumDto(result, destinationCurrency);
+        sumDtoResult.print(sumDto);
+        return sumDtoResult;
     }
 
     @Override

@@ -2,7 +2,7 @@ package org.example.schedule;
 
 import lombok.RequiredArgsConstructor;
 import org.example.exception.HttpNBRBLoaderException;
-import org.example.service.CurrencyConverter;
+import org.example.service.CurrencyConverterService;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class ExchangeRatesLoaderScheduler {
 
-    public void initScheduler(CurrencyConverter currencyConverter, String executionTimeString) {
+    public void initScheduler(CurrencyConverterService currencyConverterService, String executionTimeString) {
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
         LocalTime executionTime = LocalTime.parse(executionTimeString, DateTimeFormatter.ofPattern("HH:mm"));
@@ -27,7 +27,7 @@ public class ExchangeRatesLoaderScheduler {
 
         executorService.scheduleAtFixedRate(() -> {
             try {
-                currencyConverter.loadExchangeRates();
+                currencyConverterService.loadExchangeRates();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (HttpNBRBLoaderException e) {

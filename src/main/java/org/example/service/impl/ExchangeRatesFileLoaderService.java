@@ -1,9 +1,9 @@
 package org.example.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.dto.CurrencyCodeEnum;
+import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.dto.ExchangeRateDto;
-import org.example.service.ExchangeRatesLoader;
+import org.example.service.ExchangeRatesLoaderService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 @ConditionalOnProperty(name = "loading.mode", havingValue = "file")
 @RequiredArgsConstructor
-public class ExchangeRatesFileLoader implements ExchangeRatesLoader {
+public class ExchangeRatesFileLoaderService implements ExchangeRatesLoaderService {
 
     @Value("${loading.filePath}")
     private String loadingPath;

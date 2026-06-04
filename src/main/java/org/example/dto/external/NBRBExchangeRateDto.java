@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class NBRBExchangeRate {
+public class NBRBExchangeRateDto {
 
     @JsonProperty("Cur_ID")
     private int exchangeRateId;

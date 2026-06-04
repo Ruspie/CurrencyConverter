@@ -3,69 +3,54 @@ package org.example.repository.imp;
 import lombok.RequiredArgsConstructor;
 import org.example.repository.ExchangeRateRepository;
 import org.example.repository.entity.ExchangeRateEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
-    private final Connection connection;
+    private final Logger logger = LoggerFactory.getLogger(ExchangeRateRepositoryImpl.class);
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    private final RowMapper<ExchangeRateEntity> exchangeRateEntityRowMapper = (rs, rowNum) -> ExchangeRateEntity.builder()
+            .id(rs.getLong("id"))
+            .rate(rs.getBigDecimal("rate"))
+            .fromCurrency(rs.getString("from_currency"))
+            .toCurrency(rs.getString("to_currency"))
+            .scale(rs.getBigDecimal("scale"))
+            .build();
 
     @Override
     public List<ExchangeRateEntity> findAll() {
-
-        List<ExchangeRateEntity> exchangeRates = new ArrayList<>();
-
         String query = "SELECT from_currency, id, to_currency, rate, scale FROM cur_ex.exchange_rate ";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            //preparedStatement.setLong(1, 1L);
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                ExchangeRateEntity exchangeRate = ExchangeRateEntity.builder()
-                        .fromCurrency(resultSet.getString("from_currency"))
-                        .toCurrency(resultSet.getString("to_currency"))
-                        .rate(resultSet.getBigDecimal("rate"))
-                        .scale(resultSet.getBigDecimal("scale"))
-                        .build();
-
-                exchangeRates.add(exchangeRate);
-            }
-            resultSet.close();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return exchangeRates;
+        return jdbcTemplate.query(query, new MapSqlParameterSource(), exchangeRateEntityRowMapper);
     }
 
     @Override
     public void insert(ExchangeRateEntity exchangeRate) {
         String query = """
                     INSERT INTO cur_ex.exchange_rate
-                    (from_currency, id, to_currency, rate, "scale")
-                    VALUES(?, nextval('cur_ex.exchange_rate_id_seq'::regclass), ?, ?, ?);
+                    (from_currency, to_currency, rate, "scale")
+                    VALUES(:fromCurrency, :toCurrency , :rate, :scale);
                 """;
 
-        int affectedRows;
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, exchangeRate.getFromCurrency());
-            preparedStatement.setString(2, exchangeRate.getToCurrency());
-            preparedStatement.setBigDecimal(3, exchangeRate.getRate());
-            preparedStatement.setBigDecimal(4, exchangeRate.getScale());
-            affectedRows = preparedStatement.executeUpdate();
+        MapSqlParameterSource paramSource = new MapSqlParameterSource()
+                .addValue("fromCurrency", exchangeRate.getFromCurrency())
+                .addValue("toCurrency", exchangeRate.getToCurrency())
+                .addValue("rate", exchangeRate.getRate())
+                .addValue("scale", exchangeRate.getScale());
 
-            connection.commit();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("Inserted " + affectedRows + " rows");
+        int affectedRows = jdbcTemplate.update(query, paramSource);
+        logger.info("Inserted " + affectedRows + " rows");
     }
 
     @Override
@@ -73,34 +58,20 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
         String query = """
                     DELETE FROM cur_ex.exchange_rate
                     WHERE
-                        FROM_CURRENCY = ?
-                        AND TO_CURRENCY = ?
-                        AND RATE = ?
-                        AND SCALE = ?
+                        FROM_CURRENCY = :fromCurrency
+                        AND TO_CURRENCY = :toCurrency
+                        AND RATE = :rate
+                        AND SCALE = :scale
                 """;
 
-        int affectedRows;
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, exchangeRate.getFromCurrency());
-            preparedStatement.setString(2, exchangeRate.getToCurrency());
-            preparedStatement.setBigDecimal(3, exchangeRate.getRate());
-            preparedStatement.setBigDecimal(4, exchangeRate.getScale());
-            affectedRows = preparedStatement.executeUpdate();
+        MapSqlParameterSource paramSource = new MapSqlParameterSource()
+                .addValue("fromCurrency", exchangeRate.getFromCurrency())
+                .addValue("toCurrency", exchangeRate.getToCurrency())
+                .addValue("rate", exchangeRate.getRate())
+                .addValue("scale", exchangeRate.getScale());
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("Inserted " + affectedRows + " rows");
+        int affectedRows = jdbcTemplate.update(query, paramSource);
+        logger.info("Deleted " + affectedRows + " rows");
     }
 
-    @Override
-    public void close() throws IOException {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 }
