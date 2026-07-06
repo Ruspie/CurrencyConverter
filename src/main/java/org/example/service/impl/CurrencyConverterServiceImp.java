@@ -1,9 +1,9 @@
 package org.example.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.dto.ExchangeRateDto;
 import org.example.dto.SumDto;
+import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.exception.DataNotFoundException;
 import org.example.exception.HttpNBRBLoaderException;
 import org.example.repository.ExchangeRateRepository;
@@ -30,20 +30,20 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     public List<ExchangeRateDto> exchangeRates = new ArrayList<>();
 
+    @Override
     public void loadExchangeRates() throws IOException, HttpNBRBLoaderException, InterruptedException {
-        exchangeRatesFileLoader.loadRates();
+        List<ExchangeRateDto> loadedRates = exchangeRatesFileLoader.loadRates();
+        List<ExchangeRateEntity> allEntities = exchangeRateRepository.findAll();
 
-        List<ExchangeRateEntity> exchangeRateEntities = exchangeRateRepository.findAll();
-        System.out.println(exchangeRateEntities);
+        System.out.println("Loaded rates count: " + loadedRates.size());
+        System.out.println("Entities in DB: " + allEntities.size());
     }
 
     @Override
     public List<ExchangeRateDto> getAllExchangeRates() {
         return exchangeRateRepository.findAll()
                 .stream()
-                .map(exchangeRateEntity ->
-                        modelMapper.map(exchangeRateEntity, ExchangeRateDto.class)
-                )
+                .map(entity -> modelMapper.map(entity, ExchangeRateDto.class))
                 .collect(Collectors.toList());
     }
 
@@ -73,46 +73,19 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
         addExchangeRate(exchangeRateRUBEUR);
     }
 
-    public boolean addExchangeRate(ExchangeRateDto exchangeRate) {
-        for (ExchangeRateDto rate : exchangeRates) {
-            if (rate != null) {
-                if (rate.getFromCurrency().equals(exchangeRate.getFromCurrency())
-                        && rate.getToCurrency().equals(exchangeRate.getToCurrency())) {
-                    rate.setExchangeRate(exchangeRate.getExchangeRate());
-                    return true;
-                }
-            }
-        }
-
-        exchangeRates.add(exchangeRate);
+    @Override
+    public boolean addExchangeRate(ExchangeRateDto exchangeRateDto) {
+        ExchangeRateEntity entity = modelMapper.map(exchangeRateDto, ExchangeRateEntity.class);
+        exchangeRateRepository.save(entity);
         return true;
-    }
-
-    private ExchangeRateDto getCurrentExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency) {
-        for (ExchangeRateDto rate : exchangeRates) {
-            if (rate != null) {
-
-                if (rate.getFromCurrency().equals(fromCurrency)
-                        && rate.getToCurrency().equals(toCurrency)) {
-                    return rate;
-                }
-            }
-        }
-
-        return null;
     }
 
     @Override
     public SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency) throws DataNotFoundException {
-        List<ExchangeRateEntity> currentExchangeRateList = exchangeRateRepository.findAll();
-
-        ExchangeRateEntity currentExchangeRate = currentExchangeRateList.stream()
-                .filter(exchangeRateEntity ->
-                        exchangeRateEntity.getFromCurrency().equals(sumDto.getCurrency().name())
-                                && exchangeRateEntity.getToCurrency().equals(destinationCurrency.name())
-                )
-                .findFirst()
-                .orElseThrow(() -> new DataNotFoundException("Не найден курс конверсии", sumDto.getCurrency(), destinationCurrency));
+        ExchangeRateEntity currentExchangeRate = exchangeRateRepository
+                .findByCurrencyPair(sumDto.getCurrency().name(), destinationCurrency.name())
+                .orElseThrow(() -> new DataNotFoundException(
+                        "Не найден курс конверсии", sumDto.getCurrency(), destinationCurrency));
 
         BigDecimal result = sumDto.getSum()
                 .multiply(currentExchangeRate.getRate())
@@ -126,9 +99,10 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     @Override
     public void printAllCurrencyExchangeRates() {
-        for (ExchangeRateDto exchangeRate : exchangeRates) {
-            if (exchangeRate != null)
-                System.out.println(exchangeRate);
+        List<ExchangeRateEntity> allRates = exchangeRateRepository.findAll();
+        for (ExchangeRateEntity rate : allRates) {
+            System.out.println(rate.getFromCurrency() + " => " + rate.getToCurrency() +
+                    " - " + rate.getRate() + " (1:" + rate.getScale() + ")");
         }
     }
 
