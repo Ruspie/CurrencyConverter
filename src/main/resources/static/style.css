@@ -119,18 +119,20 @@ select {
 }
 
 .rate-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
     padding: 15px;
-    background: #f8f9fa;
-    border-left: 4px solid #3498db;
-    border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
 }
 
 .rate-currency {
     font-weight: bold;
-    margin-bottom: 5px;
+    color: #495057;
 }
 
 .rate-value {
-    color: #27ae60;
-    font-size: 18px;
+    color: #28a745;
+    font-size: 1.2rem;
+    font-weight: 600;
 }
