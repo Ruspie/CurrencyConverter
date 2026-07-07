@@ -6,6 +6,9 @@ loading:
 scheduler:
   executionTime: "21:39"
 
+logging:
+  config: classpath:log4j2.properties
+
 spring:
   config:
     import: classpath:application-access.yaml

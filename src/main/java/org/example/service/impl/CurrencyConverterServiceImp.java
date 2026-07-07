@@ -1,6 +1,7 @@
 package org.example.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.dto.ExchangeRateDto;
 import org.example.dto.SumDto;
 import org.example.dto.enums.CurrencyCodeEnum;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     private final ExchangeRatesLoaderService exchangeRatesFileLoader;
@@ -35,8 +37,8 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
         List<ExchangeRateDto> loadedRates = exchangeRatesFileLoader.loadRates();
         List<ExchangeRateEntity> allEntities = exchangeRateRepository.findAll();
 
-        System.out.println("Loaded rates count: " + loadedRates.size());
-        System.out.println("Entities in DB: " + allEntities.size());
+        log.debug("Loaded rates count: " + loadedRates.size());
+        log.debug("Entities in DB: " + allEntities.size());
     }
 
     @Override
@@ -101,7 +103,7 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
     public void printAllCurrencyExchangeRates() {
         List<ExchangeRateEntity> allRates = exchangeRateRepository.findAll();
         for (ExchangeRateEntity rate : allRates) {
-            System.out.println(rate.getFromCurrency() + " => " + rate.getToCurrency() +
+            log.debug(rate.getFromCurrency() + " => " + rate.getToCurrency() +
                     " - " + rate.getRate() + " (1:" + rate.getScale() + ")");
         }
     }

@@ -1,6 +1,7 @@
 package org.example.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.dto.ExchangeRateDto;
 import org.example.service.ExchangeRatesLoaderService;
@@ -17,6 +18,7 @@ import java.util.List;
 @Service
 @ConditionalOnProperty(name = "loading.mode", havingValue = "file")
 @RequiredArgsConstructor
+@Slf4j
 public class ExchangeRatesFileLoaderService implements ExchangeRatesLoaderService {
 
     @Value("${loading.filePath}")
@@ -28,7 +30,7 @@ public class ExchangeRatesFileLoaderService implements ExchangeRatesLoaderServic
 
     @Override
     public List<ExchangeRateDto> loadRates() {
-        System.out.println("Я файл");
+        log.debug("Я файл");
 
         List<ExchangeRateDto> exchangeRateDtos = new ArrayList<>();
 
