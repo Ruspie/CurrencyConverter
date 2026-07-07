@@ -4,7 +4,7 @@ loading:
   filePath: ./currency_rates.txt
 
 scheduler:
-  executionTime: "21:39"
+  cron: "0 0 21 * * *"
 
 logging:
   config: classpath:log4j2.properties
