@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,11 +20,11 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final AccessRulesConfig accessRulesConfig;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,21 +33,9 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> {
             auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
-
-            for (AccessRulesConfig.Rule rule : accessRulesConfig.getRules()) {
-                String pattern = rule.getPattern();
-                List<HttpMethod> methods = rule.getMethods();
-
-                if (methods != null && !methods.isEmpty()) {
-                    for (HttpMethod method : methods) {
-                        auth.requestMatchers(method, pattern)
-                                .access(rule.getAuthorizationManager());
-                    }
-                } else {
-                    auth.requestMatchers(pattern)
-                            .access(rule.getAuthorizationManager());
-                }
-            }
+            auth.requestMatchers("/api/auth/**").permitAll();
+            auth.requestMatchers("/api/currencies").permitAll();
+            auth.requestMatchers("/api/rates").permitAll();
             auth.anyRequest().authenticated();
         });
 

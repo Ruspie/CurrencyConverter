@@ -8,6 +8,7 @@ import org.example.exception.DataNotFoundException;
 import org.example.service.CurrencyConverterService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,25 +27,26 @@ public class ExchangeRateController {
     @GetMapping("/currencies")
     public ResponseEntity<?> getCurrencies() {
         List<ExchangeRateDto> allExchangeRates = currencyConverterService.getAllExchangeRates();
-
         return new ResponseEntity<>(allExchangeRates, HttpStatus.OK);
     }
 
     @GetMapping("/rates")
     public ResponseEntity<?> getExchangeRates() {
         List<ExchangeRateDto> allExchangeRates = currencyConverterService.getAllExchangeRates();
-
         return new ResponseEntity<>(allExchangeRates, HttpStatus.OK);
     }
 
     @GetMapping("/convert")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<?> exchangeSum(
             @RequestParam BigDecimal amount,
             @RequestParam(name = "from") String fromCurrency,
             @RequestParam(name = "to") String toCurrency
     ) throws DataNotFoundException {
-        SumDto sumDto = currencyConverterService.exchangeSum(new SumDto(amount, CurrencyCodeEnum.valueOf(fromCurrency)), CurrencyCodeEnum.valueOf(toCurrency));
-
+        SumDto sumDto = currencyConverterService.exchangeSum(
+                new SumDto(amount, CurrencyCodeEnum.valueOf(fromCurrency)),
+                CurrencyCodeEnum.valueOf(toCurrency)
+        );
         return new ResponseEntity<>(sumDto, HttpStatus.OK);
     }
 

@@ -5,18 +5,3 @@ app:
       refresh-secret: "cmVmcmVzaC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tYXQtbGVhc3QtMzItYnl0ZXM=" # refresh-secret-key-for-jwt-token-at-least-32-bytes
       access-token-expiration: 15m
       refresh-token-expiration: 7d
-    access-rules:
-      rules:
-        - pattern: /api/auth/**
-          access: permitAll
-        - pattern: /api/currencies
-          access: authenticated
-        - pattern: /api/rates
-          access: authenticated
-        - pattern: /api/convert
-          access: hasAnyRole('ROLE_ADMIN','ROLE_USER')
-        - pattern: /api/admin/**
-          access: hasRole('ADMIN')
-          methods:
-            - GET
-            - POST
