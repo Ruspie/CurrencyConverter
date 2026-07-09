@@ -1,15 +1,15 @@
 package org.example.repository;
 
 import org.example.repository.entity.ExchangeRateEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface ExchangeRateRepository {
+public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity, Long> {
 
-    List<ExchangeRateEntity> findAll();
+    Optional<ExchangeRateEntity> findFirstByFromCurrencyAndToCurrency(String fromCurrency, String toCurrency);
 
-    void insert(ExchangeRateEntity exchangeRate);
-
-    void delete(ExchangeRateEntity exchangeRate);
+    List<ExchangeRateRepository> findByFromCurrency(String fromCurrency);
 
 }

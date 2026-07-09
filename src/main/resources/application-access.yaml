@@ -1,0 +1,7 @@
+app:
+  security:
+    jwt:
+      access-secret: "c2VjdXJlLWFjY2Vzcy1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tYXQtbGVhc3QtMzItYnl0ZXM=" # secure-access-secret-key-for-jwt-token-at-least-32-bytes
+      refresh-secret: "cmVmcmVzaC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tYXQtbGVhc3QtMzItYnl0ZXM=" # refresh-secret-key-for-jwt-token-at-least-32-bytes
+      access-token-expiration: 900000
+      refresh-token-expiration: 604800000

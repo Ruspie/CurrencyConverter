@@ -31,7 +31,7 @@ public class ExchangeRateServiceImp {
     public void saveExchangeRate(ExchangeRateDto exchangeRate) {
         ExchangeRateEntity exchangeRateEntity = modelMapper.map(exchangeRate, ExchangeRateEntity.class);
 
-        exchangeRateRepository.insert(exchangeRateEntity);
+        exchangeRateRepository.save(exchangeRateEntity);
     }
 
     public void deleteExchangeRate(ExchangeRateDto exchangeRate) {

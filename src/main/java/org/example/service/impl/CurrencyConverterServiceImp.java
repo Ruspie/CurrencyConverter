@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -104,15 +105,9 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     @Override
     public SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency) throws DataNotFoundException {
-        List<ExchangeRateEntity> currentExchangeRateList = exchangeRateRepository.findAll();
-
-        ExchangeRateEntity currentExchangeRate = currentExchangeRateList.stream()
-                .filter(exchangeRateEntity ->
-                        exchangeRateEntity.getFromCurrency().equals(sumDto.getCurrency().name())
-                                && exchangeRateEntity.getToCurrency().equals(destinationCurrency.name())
-                )
-                .findFirst()
-                .orElseThrow(() -> new DataNotFoundException("Не найден курс конверсии", sumDto.getCurrency(), destinationCurrency));
+        ExchangeRateEntity currentExchangeRate = exchangeRateRepository.findFirstByFromCurrencyAndToCurrency(
+                sumDto.getCurrency().name(), destinationCurrency.name()
+        ).orElseThrow(() -> new DataNotFoundException("Не найден курс конверсии", sumDto.getCurrency(), destinationCurrency));
 
         BigDecimal result = sumDto.getSum()
                 .multiply(currentExchangeRate.getRate())
