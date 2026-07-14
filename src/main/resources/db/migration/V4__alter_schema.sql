@@ -1,12 +1,8 @@
-DROP TABLE public.test CASCADE;
-
 ALTER TABLE cur_ex.users
     ADD enabled BOOLEAN DEFAULT true;
 
 ALTER TABLE cur_ex.users
     ALTER COLUMN enabled SET NOT NULL;
-
-DROP TABLE cur_ex.films CASCADE;
 
 ALTER TABLE cur_ex.user_roles
     DROP CONSTRAINT user_roles_pk;
