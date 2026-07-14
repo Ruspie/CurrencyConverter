@@ -1,6 +1,7 @@
 package org.example.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.dto.ExchangeRateDto;
 import org.example.dto.SumDto;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     private final ExchangeRatesLoaderService exchangeRatesFileLoader;
@@ -32,10 +34,16 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
     public List<ExchangeRateDto> exchangeRates = new ArrayList<>();
 
     public void loadExchangeRates() throws IOException, HttpNBRBLoaderException, InterruptedException {
-        exchangeRatesFileLoader.loadRates();
+        List<ExchangeRateEntity> exchangeRateEntities = exchangeRatesFileLoader.loadRates().stream()
+                .map(exchangeRateDto -> modelMapper.map(exchangeRateDto, ExchangeRateEntity.class))
+                .toList();
 
-        List<ExchangeRateEntity> exchangeRateEntities = exchangeRateRepository.findAll();
-        System.out.println(exchangeRateEntities);
+        exchangeRateRepository.saveAll(exchangeRateEntities);
+
+        List<ExchangeRateDto> exchangeRateDtos = exchangeRateRepository.findAll().stream()
+                .map(exchangeRateEntity -> modelMapper.map(exchangeRateEntity, ExchangeRateDto.class))
+                .toList();
+        log.debug(exchangeRateDtos.toString());
     }
 
     @Override
@@ -123,7 +131,7 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
     public void printAllCurrencyExchangeRates() {
         for (ExchangeRateDto exchangeRate : exchangeRates) {
             if (exchangeRate != null)
-                System.out.println(exchangeRate);
+                log.debug(exchangeRate.toString());
         }
     }
 

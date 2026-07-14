@@ -1,6 +1,7 @@
 package org.example.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.dto.ExchangeRateDto;
 import org.example.dto.external.NBRBExchangeRateDto;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @ConditionalOnProperty(name = "loading.mode", havingValue = "http")
+@Slf4j
 public class HttpNBRBExchangeRatesLoaderService implements ExchangeRatesLoaderService {
 
     private final HttpClient httpClient;
@@ -37,7 +39,7 @@ public class HttpNBRBExchangeRatesLoaderService implements ExchangeRatesLoaderSe
     @Override
     public List<ExchangeRateDto> loadRates() throws IOException, InterruptedException, HttpNBRBLoaderException {
 
-        System.out.println("Я http");
+        log.debug("Я http");
 
         List<ExchangeRateDto> exchangeRates = new ArrayList<>();
 
@@ -60,7 +62,7 @@ public class HttpNBRBExchangeRatesLoaderService implements ExchangeRatesLoaderSe
                 .filter(nbrbExchangeRateDto -> Arrays.stream(CurrencyCodeEnum.values())
                         .map(Enum::name)
                         .toList()
-                        .contains(nbrbExchangeRateDto.getToCurrency())
+                        .contains(nbrbExchangeRateDto.getFromCurrency())
                 )
                 .map(nbrbExchangeRateDto -> modelMapper.map(nbrbExchangeRateDto, ExchangeRateDto.class))
                 .collect(Collectors.toList());

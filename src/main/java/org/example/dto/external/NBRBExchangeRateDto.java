@@ -13,7 +13,7 @@ public class NBRBExchangeRateDto {
     @JsonProperty("Date")
     private String date;
     @JsonProperty("Cur_Abbreviation")
-    private String toCurrency;
+    private String fromCurrency;
     @JsonProperty("Cur_Scale")
     private double scale;
     @JsonProperty("Cur_Name")

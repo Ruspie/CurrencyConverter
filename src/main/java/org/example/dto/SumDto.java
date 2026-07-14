@@ -1,9 +1,11 @@
 package org.example.dto;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.dto.enums.CurrencyCodeEnum;
 
 import java.math.BigDecimal;
 
+@Slf4j
 public class SumDto {
 
     private final BigDecimal sum;
@@ -23,7 +25,7 @@ public class SumDto {
     }
 
     public void print(SumDto baseSumDto) {
-        System.out.printf("base sum = %s, converted sum = %s%n", baseSumDto, this);
+        log.debug("base sum = {}, converted sum = {}", baseSumDto, this);
     }
 
     @Override

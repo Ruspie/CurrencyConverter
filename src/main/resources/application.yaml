@@ -4,7 +4,7 @@ loading:
   filePath: ./currency_rates.txt
 
 scheduler:
-  executionTime: "21:39"
+  cron: "0 1 0 * * *"
 
 spring:
   config:
@@ -34,3 +34,5 @@ spring:
     baseline-version: 0
     schemas: cur_ex
     create-schemas: true
+logging:
+  config: classpath:log4j2.properties

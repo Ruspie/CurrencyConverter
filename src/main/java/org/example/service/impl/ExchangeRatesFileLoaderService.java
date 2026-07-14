@@ -1,6 +1,7 @@
 package org.example.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.dto.ExchangeRateDto;
 import org.example.service.ExchangeRatesLoaderService;
@@ -17,18 +18,15 @@ import java.util.List;
 @Service
 @ConditionalOnProperty(name = "loading.mode", havingValue = "file")
 @RequiredArgsConstructor
+@Slf4j
 public class ExchangeRatesFileLoaderService implements ExchangeRatesLoaderService {
 
     @Value("${loading.filePath}")
     private String loadingPath;
 
-    /*public ExchangeRatesFileLoader(PropertiesWorker properties) {
-        this.properties = properties;
-    }*/
-
     @Override
     public List<ExchangeRateDto> loadRates() {
-        System.out.println("Я файл");
+        log.debug("Я файл");
 
         List<ExchangeRateDto> exchangeRateDtos = new ArrayList<>();
 
@@ -45,9 +43,6 @@ public class ExchangeRatesFileLoaderService implements ExchangeRatesLoaderServic
                         new BigDecimal(exchangeRateFields.get(3)).divide(new BigDecimal(exchangeRateFields.get(4)), 10, RoundingMode.HALF_UP));
                 exchangeRateDtos.add(exchangeRateDto);
             }
-            ;
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

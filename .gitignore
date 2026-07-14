@@ -41,3 +41,7 @@ build/
 .DS_Store
 
 .idea
+
+/logs
+/target
+/out
