@@ -28,7 +28,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.builder()
                 .user(user)
                 .token(token)
-                .expiryDate(Instant.now().plusMillis(Long.parseLong(jwtProperties.getRefreshTokenExpiration())))
+                .expiryDate(Instant.now().plusMillis(jwtProperties.getRefreshTokenExpiration()))
                 .revoked(false)
                 .build();
 

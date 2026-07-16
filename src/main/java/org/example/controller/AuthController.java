@@ -1,11 +1,11 @@
 package org.example.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.AuthResponseDto;
 import org.example.dto.LoginRequestDto;
 import org.example.dto.LogoutRequestDto;
 import org.example.dto.RefreshTokenRequestDto;
-import org.example.repository.RefreshTokenRepository;
 import org.example.repository.UserRepository;
 import org.example.repository.entity.RefreshTokenEntity;
 import org.example.repository.entity.UserEntity;
@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,16 +31,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private  final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
-    private final RefreshTokenRepository refreshTokenRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login (@RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequestDto.getUsername(),
                             loginRequestDto.getPassword()
@@ -60,18 +58,20 @@ public class AuthController {
 
             return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken));
         } catch (AuthenticationException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Неверные username/password"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Неверные username/password"));
         }
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
+    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshTokenRequestDto request) {
+        String refreshTokenValue = request.getRefreshToken();
 
-        if (!jwtService.validateRefreshToken(refreshTokenRequestDto.getRefreshToken())) {
+        if (!jwtService.validateRefreshToken(refreshTokenValue)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Неверный refresh-токен"));
         }
 
-        RefreshTokenEntity storedRefreshToken = refreshTokenRepository.findByToken(refreshTokenRequestDto.getRefreshToken())
+        RefreshTokenEntity storedRefreshToken = refreshTokenService.findByToken(refreshTokenValue)
                 .orElse(null);
 
         if (storedRefreshToken == null || storedRefreshToken.getRevoked()) {
@@ -82,23 +82,22 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Refresh-токен истёк"));
         }
 
-        String username = jwtService.getUsernameFromRefreshToken(refreshTokenRequestDto.getRefreshToken());
+        String username = jwtService.getUsernameFromRefreshToken(refreshTokenValue);
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Username " + username + " не найден"));
-
-        refreshTokenService.revokeToken(storedRefreshToken);
 
         List<String> userRoles = user.getRoles().stream().toList();
 
         String accessToken = jwtService.generateAccessToken(username, userRoles);
         String refreshToken = jwtService.generateRefreshToken(username);
+        refreshTokenService.createRefreshToken(user, refreshToken);
 
         return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody LogoutRequestDto logoutRequestDto) {
-        refreshTokenRepository.findByToken(logoutRequestDto.getRefreshToken())
+    public ResponseEntity<?> logout(@Valid @RequestBody LogoutRequestDto request) {
+        refreshTokenService.findByToken(request.getRefreshToken())
                 .ifPresent(refreshTokenService::revokeToken);
 
         return ResponseEntity.ok(Map.of("message", "Вы успешно вышли"));

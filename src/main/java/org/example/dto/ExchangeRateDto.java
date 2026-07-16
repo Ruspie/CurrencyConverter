@@ -5,6 +5,7 @@ import org.example.dto.enums.CurrencyCodeEnum;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Builder
@@ -14,14 +15,26 @@ public class ExchangeRateDto implements Serializable {
     private CurrencyCodeEnum toCurrency;
     private BigDecimal exchangeRate;
     private BigDecimal scale;
+    private LocalDate rateDate;
 
     public ExchangeRateDto() {}
 
     public ExchangeRateDto(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, BigDecimal exchangeRate, BigDecimal scale) {
+        this(fromCurrency, toCurrency, exchangeRate, scale, LocalDate.now());
+    }
+
+    public ExchangeRateDto(
+            CurrencyCodeEnum fromCurrency,
+            CurrencyCodeEnum toCurrency,
+            BigDecimal exchangeRate,
+            BigDecimal scale,
+            LocalDate rateDate
+    ) {
         this.fromCurrency = fromCurrency;
         this.toCurrency = toCurrency;
         this.exchangeRate = exchangeRate;
         this.scale = scale;
+        this.rateDate = rateDate;
     }
 
     public void setExchangeRate(BigDecimal exchangeRate) {
@@ -56,6 +69,14 @@ public class ExchangeRateDto implements Serializable {
         return scale;
     }
 
+    public LocalDate getRateDate() {
+        return rateDate;
+    }
+
+    public void setRateDate(LocalDate rateDate) {
+        this.rateDate = rateDate;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -64,17 +85,18 @@ public class ExchangeRateDto implements Serializable {
         return fromCurrency == that.fromCurrency
                 && toCurrency == that.toCurrency
                 && Objects.equals(exchangeRate, that.exchangeRate)
-                && Objects.equals(scale, that.scale);
+                && Objects.equals(scale, that.scale)
+                && Objects.equals(rateDate, that.rateDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fromCurrency, toCurrency, exchangeRate, scale);
+        return Objects.hash(fromCurrency, toCurrency, exchangeRate, scale, rateDate);
     }
 
     @Override
     public String toString() {
         return fromCurrency.name() + " => " + toCurrency.name() + " - " +
-                exchangeRate + " (1:" + String.format("%.0f", scale) + ')';
+                exchangeRate + " (1:" + String.format("%.0f", scale) + "), " + rateDate;
     }
 }

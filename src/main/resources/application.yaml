@@ -1,7 +1,12 @@
 loading:
   enable: true
   mode: http
-  filePath: ./currency_rates.txt
+  history-days: 10
+  file-path: ./currency_rates.txt
+  http:
+    url: https://api.nbrb.by/exrates/rates?periodicity=0
+    timeout: 10s
+    max-attempts: 3
 
 scheduler:
   cron: "0 1 0 * * *"
@@ -17,7 +22,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         default_schema: cur_ex
@@ -36,3 +41,7 @@ spring:
     create-schemas: true
 logging:
   config: classpath:log4j2.properties
+
+app:
+  cors:
+    allowed-origins: http://localhost:63342,http://localhost:8080

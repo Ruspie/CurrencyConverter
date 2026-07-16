@@ -1,14 +1,13 @@
 package org.example.dto;
 
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class RefreshTokenRequestDto {
 
+    @NotBlank
     private String refreshToken;
-
 }

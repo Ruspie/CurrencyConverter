@@ -31,9 +31,11 @@ public class SecurityConfig {
         });
 
         httpSecurity.authorizeHttpRequests(auth -> {
+            auth.requestMatchers("/", "/index.html", "/*.css", "/*.js", "/favicon.ico").permitAll();
             auth.requestMatchers("/api/auth/**").permitAll();
             auth.requestMatchers("/api/currencies").permitAll();
-            auth.requestMatchers("/api/rates").permitAll();
+            auth.requestMatchers("/api/rates/dates").permitAll();
+            auth.requestMatchers("/api/rates", "/api/rates/**").permitAll();
             auth.anyRequest().authenticated();
         });
 

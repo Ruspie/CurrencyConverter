@@ -34,7 +34,7 @@ public class JwtServiceImpl implements JwtService {
 
     private SecretKey getRefreshKey() {
         if (refreshKey == null) {
-            refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getAccessRefreshSecret()));
+            refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getRefreshSecret()));
         }
 
         return refreshKey;
@@ -48,7 +48,7 @@ public class JwtServiceImpl implements JwtService {
                 .subject(username)
                 .claim("roles", roles)
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plusMillis(Long.parseLong(jwtProperties.getAccessTokenExpiration()))))
+                .expiration(Date.from(now.plusMillis(jwtProperties.getAccessTokenExpiration())))
                 .id(UUID.randomUUID().toString())
                 .signWith(getAccessKey())
                 .compact();
@@ -61,7 +61,7 @@ public class JwtServiceImpl implements JwtService {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plusMillis(Long.parseLong(jwtProperties.getRefreshTokenExpiration()))))
+                .expiration(Date.from(now.plusMillis(jwtProperties.getRefreshTokenExpiration())))
                 .id(UUID.randomUUID().toString())
                 .signWith(getRefreshKey())
                 .compact();
@@ -72,7 +72,7 @@ public class JwtServiceImpl implements JwtService {
         try {
             Jwts.parser().verifyWith(getAccessKey()).build().parseSignedClaims(token);
             return true;
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
@@ -82,7 +82,7 @@ public class JwtServiceImpl implements JwtService {
         try {
             Jwts.parser().verifyWith(getRefreshKey()).build().parseSignedClaims(token);
             return true;
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }

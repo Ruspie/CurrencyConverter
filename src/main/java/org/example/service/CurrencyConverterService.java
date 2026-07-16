@@ -7,17 +7,18 @@ import org.example.dto.enums.CurrencyCodeEnum;
 import org.example.exception.HttpNBRBLoaderException;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface CurrencyConverterService {
 
-    void printAllCurrencyExchangeRates();
+    SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency, LocalDate rateDate)
+            throws DataNotFoundException;
 
-    SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency) throws DataNotFoundException;
+    void loadExchangeRates(LocalDate rateDate)
+            throws IOException, HttpNBRBLoaderException, InterruptedException;
 
-    boolean addExchangeRate(ExchangeRateDto exchangeRateDto);
+    List<ExchangeRateDto> getExchangeRates(LocalDate rateDate);
 
-    void loadExchangeRates() throws IOException, HttpNBRBLoaderException, InterruptedException;
-
-    List<ExchangeRateDto> getAllExchangeRates();
+    List<LocalDate> getAvailableRateDates();
 }
