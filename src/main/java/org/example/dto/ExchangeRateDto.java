@@ -1,60 +1,25 @@
 package org.example.dto;
 
-import lombok.Builder;
+import lombok.*;
 import org.example.dto.enums.CurrencyCodeEnum;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class ExchangeRateDto implements Serializable {
 
     private CurrencyCodeEnum fromCurrency;
     private CurrencyCodeEnum toCurrency;
     private BigDecimal exchangeRate;
     private BigDecimal scale;
-
-    public ExchangeRateDto() {}
-
-    public ExchangeRateDto(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, BigDecimal exchangeRate, BigDecimal scale) {
-        this.fromCurrency = fromCurrency;
-        this.toCurrency = toCurrency;
-        this.exchangeRate = exchangeRate;
-        this.scale = scale;
-    }
-
-    public void setExchangeRate(BigDecimal exchangeRate) {
-        this.exchangeRate = exchangeRate;
-    }
-
-    public void setFromCurrency(CurrencyCodeEnum fromCurrency) {
-        this.fromCurrency = fromCurrency;
-    }
-
-    public void setToCurrency(CurrencyCodeEnum toCurrency) {
-        this.toCurrency = toCurrency;
-    }
-
-    public void setScale(BigDecimal scale) {
-        this.scale = scale;
-    }
-
-    public CurrencyCodeEnum getFromCurrency() {
-        return fromCurrency;
-    }
-
-    public CurrencyCodeEnum getToCurrency() {
-        return toCurrency;
-    }
-
-    public BigDecimal getExchangeRate() {
-        return exchangeRate;
-    }
-
-    public BigDecimal getScale() {
-        return scale;
-    }
+    private LocalDate rateDate;
 
     @Override
     public boolean equals(Object o) {

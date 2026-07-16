@@ -1,4 +1,4 @@
-package org.example.repository.entity.mapper;
+package org.example.mapper;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +56,8 @@ public class ExchangeRateMapper {
                     mapper.map(ExchangeRateDto::getScale, ExchangeRateEntity::setScale);
                     mapper.map(ExchangeRateDto::getExchangeRate, ExchangeRateEntity::setRate);
                 });
+
+        /// TODO Добавить новый маппер
     }
 
 }

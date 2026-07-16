@@ -1,0 +1,12 @@
+
+ALTER TABLE cur_ex.exchange_rate
+    ADD COLUMN rate_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    ALTER COLUMN from_currency TYPE VARCHAR(3),
+    ALTER COLUMN from_currency SET NOT NULl,
+    ALTER COLUMN to_currency TYPE VARCHAR(3),
+    ALTER COLUMN to_currency SET NOT NULL,
+    ALTER COLUMN rate TYPE NUMERIC(24, 12),
+    ALTER COLUMN rate SET NOT NULL,
+    ALTER COLUMN scale TYPE NUMERIC(24, 12),
+    ALTER COLUMN scale SET NOT NULL;
+

@@ -6,7 +6,7 @@ public enum CurrencyCodeEnum {
     EUR("ЕВРО"),
     USD("Доллар США"),
     RUB("Российский рубль"),
-    ZL("Польский злотый");
+    PLN("Польский злотый");
 
     private final String description;
 

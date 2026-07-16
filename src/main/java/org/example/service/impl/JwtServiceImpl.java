@@ -34,7 +34,7 @@ public class JwtServiceImpl implements JwtService {
 
     private SecretKey getRefreshKey() {
         if (refreshKey == null) {
-            refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getAccessRefreshSecret()));
+            refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getRefreshSecret()));
         }
 
         return refreshKey;

@@ -1,6 +1,6 @@
 const BASE = 'http://localhost:8080/api';
 let accessToken = null;
-let refreshToken = null;
+let refreshToken = localStorage.getItem('rt');
 
 // -------- Auth --------
 async function authLogin(username, password) {
@@ -17,12 +17,11 @@ async function authLogin(username, password) {
 }
 
 async function authRefresh() {
-    const rt = refreshToken || localStorage.getItem('rt');
-    if (!rt) throw new Error('no token');
+    if (!refreshToken) throw new Error('no token');
     const r = await fetch(`${BASE}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: rt })
+        body: JSON.stringify({ refreshToken })
     });
     if (!r.ok) { authLogout(); throw new Error('expired'); }
     const d = await r.json();
@@ -32,8 +31,15 @@ async function authRefresh() {
 }
 
 async function authLogout() {
-    const rt = refreshToken || localStorage.getItem('rt');
-    if (rt) { try { await fetch(`${BASE}/auth/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: rt }) }); } catch(e) {} }
+    try {
+        if (refreshToken) {
+            await fetch(`${BASE}/auth/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken })
+            });
+        }
+    } catch(e) {}
     accessToken = null;
     refreshToken = null;
     localStorage.removeItem('rt');
@@ -89,32 +95,32 @@ function populateSelect(select, currencies) {
 
 let allCurrencies = [];
 
+async function loadRateDates() {
+    const r = await fetch(`${BASE}/rates/dates`);
+    if (!r.ok) throw new Error('Не удалось загрузить даты курсов');
+
+    const dates = await r.json();
+    populateSelect(el.rateDate, dates);
+    if (dates.length === 0) {
+        throw new Error('В базе нет доступных дат курсов');
+    }
+}
+
 async function loadCurrencies() {
     try {
         const r = await fetch(`${BASE}/currencies`);
-        const rates = await r.json();
+        const currencies = await r.json();
 
-        // Берём fromCurrency из первого элемента и toCurrency из первого элемента
-        if (rates.length > 0) {
-            const defaultFrom = rates[0].fromCurrency;
-            const defaultTo = rates[0].toCurrency;
+        if (currencies.length > 1) {
+            allCurrencies = currencies.slice().sort();
+            const defaultFrom = allCurrencies[0];
+            const defaultTo = allCurrencies[1];
 
-            // Собираем все уникальные валюты
-            const set = new Set();
-            rates.forEach(x => {
-                if (x.fromCurrency) set.add(x.fromCurrency);
-                if (x.toCurrency) set.add(x.toCurrency);
-            });
-            allCurrencies = Array.from(set).sort();
-
-            // Наполняем from всеми валютами, to — всеми кроме from
             populateSelect(el.from, allCurrencies);
             el.from.value = defaultFrom;
 
             populateSelect(el.to, allCurrencies.filter(c => c !== defaultFrom));
             el.to.value = defaultTo;
-
-            console.log('Валюты загружены, from:', el.from.value, 'to:', el.to.value);
         }
     } catch(e) {
         console.error('Ошибка загрузки валют:', e);
@@ -137,15 +143,21 @@ function updateFromSelect() {
 
 async function loadRates() {
     try {
-        const r = await fetch(`${BASE}/rates`);
+        if (!el.rateDate.value) return;
+        const r = await fetch(`${BASE}/rates?date=${encodeURIComponent(el.rateDate.value)}`);
         const rates = await r.json();
         el.ratesContainer.innerHTML = '';
         el.ratesCount.textContent = `Найдено записей: ${rates.length}`;
         rates.forEach(rate => {
             const d = document.createElement('div');
             d.className = 'col-md-4';
-            const disp = Number(rate.scale) === 1 ? rate.fromCurrency : `${Number(rate.scale)} ${rate.fromCurrency}`;
-            d.innerHTML = `<div class="rate-card text-center"><div class="rate-currency">${disp} / ${rate.toCurrency}</div><div class="rate-value">${Number(rate.exchangeRate).toFixed(4)}</div></div>`;
+            const scale = Number(rate.scale);
+            const formattedScale = Number.isInteger(scale) ? scale.toFixed(0) : scale.toString();
+            d.innerHTML = `<div class="rate-card text-center">
+                <div class="rate-currency">${formattedScale} ${rate.fromCurrency} =</div>
+                <div class="rate-value">${Number(rate.exchangeRate).toFixed(4)} ${rate.toCurrency}</div>
+                <div class="text-muted small">Курс на ${rate.rateDate}</div>
+            </div>`;
             el.ratesContainer.appendChild(d);
         });
     } catch(e) {
@@ -161,8 +173,14 @@ async function convert() {
         el.result.className = 'alert alert-warning text-center';
         return;
     }
+    if (!el.rateDate.value) {
+        el.result.textContent = 'Выберите дату курса';
+        return;
+    }
     try {
-        const r = await apiGet(`/convert?amount=${amount}&from=${el.from.value}&to=${el.to.value}`);
+        const r = await apiGet(
+            `/convert?amount=${amount}&from=${el.from.value}&to=${el.to.value}&date=${encodeURIComponent(el.rateDate.value)}`
+        );
         if (!r.ok) {
             let errorText = 'Ошибка конвертации';
             try {
@@ -196,6 +214,7 @@ function swap() {
 // -------- Старт --------
 document.addEventListener('DOMContentLoaded', async () => {
     el.amount = $('amount');
+    el.rateDate = $('rate-date');
     el.from = $('from-currency');
     el.to = $('to-currency');
     el.convertBtn = $('convert-btn');
@@ -213,6 +232,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     el.convertBtn.onclick = convert;
     el.swapBtn.onclick = swap;
     el.amount.oninput = convert;
+    el.rateDate.onchange = async () => { await loadRates(); convert(); };
     el.from.onchange = () => { updateToSelect(); convert(); };
     el.to.onchange = () => { updateFromSelect(); convert(); };
 
@@ -232,10 +252,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    const stored = localStorage.getItem('rt');
-    if (stored) refreshToken = stored;
+    if (refreshToken) {
+        try {
+            await authRefresh();
+        } catch(e) {
+            accessToken = null;
+        }
+    }
 
-    await loadCurrencies();
-    await loadRates();
+    try {
+        await loadRateDates();
+        await loadCurrencies();
+        await loadRates();
+    } catch(e) {
+        el.result.textContent = e.message;
+        el.result.className = 'alert alert-danger text-center';
+    }
     updateUI();
 });

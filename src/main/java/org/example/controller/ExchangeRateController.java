@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -25,15 +28,24 @@ public class ExchangeRateController {
     private final CurrencyConverterService currencyConverterService;
 
     @GetMapping("/currencies")
-    public ResponseEntity<?> getCurrencies() {
-        List<ExchangeRateDto> allExchangeRates = currencyConverterService.getAllExchangeRates();
+    public ResponseEntity<List<String>> getCurrencies() {
+        List<String> allCurrencies = Arrays.stream(CurrencyCodeEnum.values())
+                .map(Enum::name)
+                .toList();
 
-        return new ResponseEntity<>(allExchangeRates, HttpStatus.OK);
+        return new ResponseEntity<>(allCurrencies, HttpStatus.OK);
+    }
+
+    @GetMapping("/rates/dates")
+    public ResponseEntity<List<LocalDate>> getAvailableDates() {
+        List<LocalDate> availableDates = currencyConverterService.getAvailableDates();
+
+        return new ResponseEntity<>(availableDates, HttpStatus.OK);
     }
 
     @GetMapping("/rates")
-    public ResponseEntity<?> getExchangeRates() {
-        List<ExchangeRateDto> allExchangeRates = currencyConverterService.getAllExchangeRates();
+    public ResponseEntity<List<ExchangeRateDto>> getExchangeRates(@RequestParam LocalDate date) {
+        List<ExchangeRateDto> allExchangeRates = currencyConverterService.getAllExchangeRates(date);
 
         return new ResponseEntity<>(allExchangeRates, HttpStatus.OK);
     }
@@ -43,9 +55,14 @@ public class ExchangeRateController {
     public ResponseEntity<?> exchangeSum(
             @RequestParam BigDecimal amount,
             @RequestParam(name = "from") String fromCurrency,
-            @RequestParam(name = "to") String toCurrency
+            @RequestParam(name = "to") String toCurrency,
+            @RequestParam(name = "date") LocalDate date
     ) throws DataNotFoundException {
-        SumDto sumDto = currencyConverterService.exchangeSum(new SumDto(amount, CurrencyCodeEnum.valueOf(fromCurrency)), CurrencyCodeEnum.valueOf(toCurrency));
+        SumDto sumDto = currencyConverterService.exchangeSum(
+                new SumDto(amount, CurrencyCodeEnum.valueOf(fromCurrency)),
+                CurrencyCodeEnum.valueOf(toCurrency),
+                date
+        );
 
         return new ResponseEntity<>(sumDto, HttpStatus.OK);
     }

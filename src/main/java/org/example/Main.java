@@ -13,6 +13,7 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
+
         SpringApplication.run(Main.class, args);
     }
 }

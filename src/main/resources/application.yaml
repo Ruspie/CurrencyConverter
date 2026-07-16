@@ -2,6 +2,9 @@ loading:
   enable: true
   mode: http
   filePath: ./currency_rates.txt
+  timeout: 10s
+  history:
+    days: 10
 
 scheduler:
   cron: "0 1 0 * * *"
@@ -16,7 +19,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:

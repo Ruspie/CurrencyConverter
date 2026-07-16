@@ -8,6 +8,7 @@ import org.example.dto.external.NBRBExchangeRateDto;
 import org.example.exception.HttpNBRBLoaderException;
 import org.example.service.ExchangeRatesLoaderService;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,9 +30,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class HttpNBRBExchangeRatesLoaderService implements ExchangeRatesLoaderService {
 
+    public static final String BASE_RATES_URL = "https://api.nbrb.by/exrates/rates";
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final ModelMapper modelMapper;
+    @Value("${loading.timeout}")
+    private Duration timeout;
 
     public HttpNBRBExchangeRatesLoaderService(ModelMapper modelMapper) {
         this.objectMapper = new ObjectMapper();
@@ -37,14 +44,13 @@ public class HttpNBRBExchangeRatesLoaderService implements ExchangeRatesLoaderSe
     }
 
     @Override
-    public List<ExchangeRateDto> loadRates() throws IOException, InterruptedException, HttpNBRBLoaderException {
+    public List<ExchangeRateDto> loadRates(LocalDate date) throws IOException, InterruptedException, HttpNBRBLoaderException {
 
         log.debug("Я http");
 
-        List<ExchangeRateDto> exchangeRates = new ArrayList<>();
-
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.nbrb.by/exrates/rates?periodicity=0"))
+                .uri(URI.create(BASE_RATES_URL + "?periodicity=0&ondate=" + date))
+                .timeout(timeout)
                 .GET()
                 .build();
 

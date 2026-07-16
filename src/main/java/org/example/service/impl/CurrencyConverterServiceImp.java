@@ -12,14 +12,17 @@ import org.example.repository.entity.ExchangeRateEntity;
 import org.example.service.CurrencyConverterService;
 import org.example.service.ExchangeRatesLoaderService;
 import org.modelmapper.ModelMapper;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,10 +36,19 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     public List<ExchangeRateDto> exchangeRates = new ArrayList<>();
 
-    public void loadExchangeRates() throws IOException, HttpNBRBLoaderException, InterruptedException {
-        List<ExchangeRateEntity> exchangeRateEntities = exchangeRatesFileLoader.loadRates().stream()
+    public void loadExchangeRates(LocalDate date) throws IOException, HttpNBRBLoaderException, InterruptedException {
+        List<ExchangeRateEntity> exchangeRateEntities = exchangeRatesFileLoader.loadRates(date).stream()
                 .map(exchangeRateDto -> modelMapper.map(exchangeRateDto, ExchangeRateEntity.class))
                 .toList();
+
+        Set<String> storedExchangeRateKeys = exchangeRateRepository.findAllByRateDate(date).stream()
+                .map(this::getRateKey)
+                .collect(Collectors.toSet());
+
+        exchangeRateEntities = exchangeRateEntities.stream()
+                .peek(exchangeRateEntity -> exchangeRateEntity.setRateDate(date))
+                .filter(exchangeRateEntity -> !storedExchangeRateKeys.contains(getRateKey(exchangeRateEntity)))
+                .collect(Collectors.toList());
 
         exchangeRateRepository.saveAll(exchangeRateEntities);
 
@@ -46,9 +58,13 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
         log.debug(exchangeRateDtos.toString());
     }
 
+    private String getRateKey(ExchangeRateEntity entity) {
+        return entity.getToCurrency() + ";" + entity.getFromCurrency() + ";" + entity.getRateDate();
+    }
+
     @Override
-    public List<ExchangeRateDto> getAllExchangeRates() {
-        return exchangeRateRepository.findAll()
+    public List<ExchangeRateDto> getAllExchangeRates(LocalDate date) {
+        return exchangeRateRepository.findAllByRateDateOrderByFromCurrencyAscToCurrencyAsc(date)
                 .stream()
                 .map(exchangeRateEntity ->
                         modelMapper.map(exchangeRateEntity, ExchangeRateDto.class)
@@ -56,30 +72,9 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
                 .collect(Collectors.toList());
     }
 
-    private void generateAnotherExchangeRates(ExchangeRateDto exchangeRateBYNUSD, ExchangeRateDto exchangeRateBYNEUR, ExchangeRateDto exchangeRateBYNRUB) {
-        ExchangeRateDto exchangeRateUSDBYN = new ExchangeRateDto(CurrencyCodeEnum.USD, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNUSD.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRateDto exchangeRateEURBYN = new ExchangeRateDto(CurrencyCodeEnum.EUR, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNEUR.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRateDto exchangeRateRUBBYN = new ExchangeRateDto(CurrencyCodeEnum.RUB, CurrencyCodeEnum.BYN, BigDecimal.ONE.divide(exchangeRateBYNRUB.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.valueOf(1.0 / 100.0));
-
-        addExchangeRate(exchangeRateUSDBYN);
-        addExchangeRate(exchangeRateEURBYN);
-        addExchangeRate(exchangeRateRUBBYN);
-
-        ExchangeRateDto exchangeRateUSDEUR = new ExchangeRateDto(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, exchangeRateUSDBYN.getExchangeRate().divide(exchangeRateEURBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRateDto exchangeRateEURUSD = new ExchangeRateDto(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateUSDEUR.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-
-        ExchangeRateDto exchangeRateRUBUSD = new ExchangeRateDto(CurrencyCodeEnum.RUB, CurrencyCodeEnum.USD, exchangeRateRUBBYN.getExchangeRate().divide(exchangeRateUSDBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRateDto exchangeRateUSDRUB = new ExchangeRateDto(CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateRUBUSD.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-
-        ExchangeRateDto exchangeRateEURRUB = new ExchangeRateDto(CurrencyCodeEnum.EUR, CurrencyCodeEnum.RUB, exchangeRateEURBYN.getExchangeRate().divide(exchangeRateRUBBYN.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-        ExchangeRateDto exchangeRateRUBEUR = new ExchangeRateDto(CurrencyCodeEnum.RUB, CurrencyCodeEnum.EUR, BigDecimal.ONE.divide(exchangeRateEURRUB.getExchangeRate(), 10, RoundingMode.HALF_UP), BigDecimal.ONE);
-
-        addExchangeRate(exchangeRateUSDEUR);
-        addExchangeRate(exchangeRateEURUSD);
-        addExchangeRate(exchangeRateRUBUSD);
-        addExchangeRate(exchangeRateUSDRUB);
-        addExchangeRate(exchangeRateEURRUB);
-        addExchangeRate(exchangeRateRUBEUR);
+    @Override
+    public List<LocalDate> getAvailableDates() {
+        return exchangeRateRepository.findDistinctRateDates();
     }
 
     public boolean addExchangeRate(ExchangeRateDto exchangeRate) {
@@ -112,17 +107,23 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
     }
 
     @Override
-    public SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency) throws DataNotFoundException {
-        ExchangeRateEntity currentExchangeRate = exchangeRateRepository.findFirstByFromCurrencyAndToCurrency(
-                sumDto.getCurrency().name(), destinationCurrency.name()
+    public SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency, LocalDate date) throws DataNotFoundException {
+        ExchangeRateEntity currentExchangeRate = exchangeRateRepository.findFirstByFromCurrencyAndToCurrencyAndRateDate(
+                sumDto.getCurrency().name(), destinationCurrency.name(), date
         ).orElseThrow(() -> new DataNotFoundException("Не найден курс конверсии", sumDto.getCurrency(), destinationCurrency));
+
+        modelMapper.map(currentExchangeRate, ExchangeRateEntity.class);
+
+        /// TODO Сделать кросс конверсию
 
         BigDecimal result = sumDto.getSum()
                 .multiply(currentExchangeRate.getRate())
                 .multiply(currentExchangeRate.getScale())
                 .setScale(2, RoundingMode.HALF_UP);
 
-        SumDto sumDtoResult = new SumDto(result, destinationCurrency);
+        SumDto sumDtoResult = new SumDto(
+                result, destinationCurrency
+        );
         sumDtoResult.print(sumDto);
         return sumDtoResult;
     }

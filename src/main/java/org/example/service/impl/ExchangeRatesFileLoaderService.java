@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class ExchangeRatesFileLoaderService implements ExchangeRatesLoaderServic
     private String loadingPath;
 
     @Override
-    public List<ExchangeRateDto> loadRates() {
+    public List<ExchangeRateDto> loadRates(LocalDate date) {
         log.debug("Я файл");
 
         List<ExchangeRateDto> exchangeRateDtos = new ArrayList<>();
@@ -40,7 +41,9 @@ public class ExchangeRatesFileLoaderService implements ExchangeRatesLoaderServic
                         CurrencyCodeEnum.valueOf(exchangeRateFields.get(0)),
                         CurrencyCodeEnum.valueOf(exchangeRateFields.get(1)),
                         new BigDecimal(exchangeRateFields.get(2)),
-                        new BigDecimal(exchangeRateFields.get(3)).divide(new BigDecimal(exchangeRateFields.get(4)), 10, RoundingMode.HALF_UP));
+                        new BigDecimal(exchangeRateFields.get(3)).divide(new BigDecimal(exchangeRateFields.get(4)), 10, RoundingMode.HALF_UP),
+                        date
+                );
                 exchangeRateDtos.add(exchangeRateDto);
             }
         } catch (IOException e) {

@@ -1,0 +1,1 @@
+TRUNCATE TABLE cur_ex.exchange_rate;
