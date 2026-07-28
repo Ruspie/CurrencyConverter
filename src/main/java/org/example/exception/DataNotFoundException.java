@@ -13,6 +13,8 @@ public class DataNotFoundException extends Exception {
         this.toCurrency = toCurrency;
     }
 
+
+
     @Override
     public String toString() {
         return super.toString() + " fromCurrency=" + fromCurrency +
