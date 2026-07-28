@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>CurrencyConverter</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -152,5 +152,15 @@
         </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Собирает "толстый" jar со всеми зависимостями — без него контейнер не запустит Spring Boot -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

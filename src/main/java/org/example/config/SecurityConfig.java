@@ -30,8 +30,6 @@ public class SecurityConfig {
         httpSecurity.cors(cors -> {
         });
 
-
-
         httpSecurity.authorizeHttpRequests(auth -> {
             auth.requestMatchers("/api/auth/**").permitAll();
             auth.requestMatchers("/api/currencies").permitAll();
