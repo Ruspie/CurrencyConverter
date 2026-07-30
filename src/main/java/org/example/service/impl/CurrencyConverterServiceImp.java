@@ -12,7 +12,6 @@ import org.example.repository.entity.ExchangeRateEntity;
 import org.example.service.CurrencyConverterService;
 import org.example.service.ExchangeRatesLoaderService;
 import org.modelmapper.ModelMapper;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -29,6 +28,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class CurrencyConverterServiceImp implements CurrencyConverterService {
+
+    private static final int CALC_SCALE = 10;
+    private static final CurrencyCodeEnum BASE_CURRENCY = CurrencyCodeEnum.BYN;
 
     private final ExchangeRatesLoaderService exchangeRatesFileLoader;
     private final ExchangeRateRepository exchangeRateRepository;
@@ -108,24 +110,72 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     @Override
     public SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency, LocalDate date) throws DataNotFoundException {
-        ExchangeRateEntity currentExchangeRate = exchangeRateRepository.findFirstByFromCurrencyAndToCurrencyAndRateDate(
-                sumDto.getCurrency().name(), destinationCurrency.name(), date
-        ).orElseThrow(() -> new DataNotFoundException("Не найден курс конверсии", sumDto.getCurrency(), destinationCurrency));
+        CurrencyCodeEnum fromCurrency = sumDto.getCurrency();
 
-        modelMapper.map(currentExchangeRate, ExchangeRateEntity.class);
+        if (fromCurrency == destinationCurrency) {
+            SumDto sameCurrency = new SumDto(sumDto.getSum().setScale(2, RoundingMode.HALF_UP), destinationCurrency);
+            sameCurrency.print(sumDto);
+            return sameCurrency;
+        }
 
-        /// TODO Сделать кросс конверсию
-
-        BigDecimal result = sumDto.getSum()
-                .multiply(currentExchangeRate.getRate())
-                .multiply(currentExchangeRate.getScale())
+        BigDecimal result = convertAmount(sumDto.getSum(), fromCurrency, destinationCurrency, date)
                 .setScale(2, RoundingMode.HALF_UP);
 
-        SumDto sumDtoResult = new SumDto(
-                result, destinationCurrency
-        );
+        SumDto sumDtoResult = new SumDto(result, destinationCurrency);
         sumDtoResult.print(sumDto);
         return sumDtoResult;
+    }
+
+    /**
+     * Конвертация:
+     * 1) прямой курс from→to
+     * 2) обратный to→from (например BYN→USD при наличии USD→BYN)
+     * 3) кросс через BYN (USD→EUR = USD→BYN→EUR)
+     * <p>
+     * Курс НБРБ: {@code scale} единиц fromCurrency = {@code rate} единиц toCurrency.
+     */
+    private BigDecimal convertAmount(
+            BigDecimal amount,
+            CurrencyCodeEnum fromCurrency,
+            CurrencyCodeEnum toCurrency,
+            LocalDate date
+    ) throws DataNotFoundException {
+        Optional<ExchangeRateEntity> direct = findRate(fromCurrency, toCurrency, date);
+        if (direct.isPresent()) {
+            return applyDirectRate(amount, direct.get());
+        }
+
+        Optional<ExchangeRateEntity> inverse = findRate(toCurrency, fromCurrency, date);
+        if (inverse.isPresent()) {
+            return applyInverseRate(amount, inverse.get());
+        }
+
+        if (fromCurrency != BASE_CURRENCY && toCurrency != BASE_CURRENCY) {
+            BigDecimal amountInBase = convertAmount(amount, fromCurrency, BASE_CURRENCY, date);
+            return convertAmount(amountInBase, BASE_CURRENCY, toCurrency, date);
+        }
+
+        throw new DataNotFoundException("Не найден курс конверсии", fromCurrency, toCurrency);
+    }
+
+    private Optional<ExchangeRateEntity> findRate(CurrencyCodeEnum from, CurrencyCodeEnum to, LocalDate date) {
+        return exchangeRateRepository.findFirstByFromCurrencyAndToCurrencyAndRateDate(
+                from.name(), to.name(), date
+        );
+    }
+
+    /** scale единиц from = rate единиц to → amount * rate / scale */
+    private BigDecimal applyDirectRate(BigDecimal amount, ExchangeRateEntity rate) {
+        return amount
+                .multiply(rate.getRate())
+                .divide(rate.getScale(), CALC_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /** обратный к прямому: amount * scale / rate */
+    private BigDecimal applyInverseRate(BigDecimal amount, ExchangeRateEntity rate) {
+        return amount
+                .multiply(rate.getScale())
+                .divide(rate.getRate(), CALC_SCALE, RoundingMode.HALF_UP);
     }
 
     @Override
