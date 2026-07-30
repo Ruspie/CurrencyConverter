@@ -43,18 +43,22 @@ public class ExchangeRateMapper {
 
         modelMapper.typeMap(ExchangeRateEntity.class, ExchangeRateDto.class)
                 .addMappings(mapper -> {
+                    mapper.map(ExchangeRateEntity::getId, ExchangeRateDto::setId);
                     mapper.using(getCurrencyCodeEnumFromStringConverter).map(ExchangeRateEntity::getFromCurrency, ExchangeRateDto::setFromCurrency);
                     mapper.using(getCurrencyCodeEnumFromStringConverter).map(ExchangeRateEntity::getToCurrency, ExchangeRateDto::setToCurrency);
                     mapper.map(ExchangeRateEntity::getScale, ExchangeRateDto::setScale);
                     mapper.map(ExchangeRateEntity::getRate, ExchangeRateDto::setExchangeRate);
+                    mapper.map(ExchangeRateEntity::getRateDate, ExchangeRateDto::setRateDate);
                 });
 
         modelMapper.typeMap(ExchangeRateDto.class, ExchangeRateEntity.class)
                 .addMappings(mapper -> {
+                    mapper.map(ExchangeRateDto::getId, ExchangeRateEntity::setId);
                     mapper.using(getCurrencyCodeStringFromEnumConverter).map(ExchangeRateDto::getFromCurrency, ExchangeRateEntity::setFromCurrency);
                     mapper.using(getCurrencyCodeStringFromEnumConverter).map(ExchangeRateDto::getToCurrency, ExchangeRateEntity::setToCurrency);
                     mapper.map(ExchangeRateDto::getScale, ExchangeRateEntity::setScale);
                     mapper.map(ExchangeRateDto::getExchangeRate, ExchangeRateEntity::setRate);
+                    mapper.map(ExchangeRateDto::getRateDate, ExchangeRateEntity::setRateDate);
                 });
 
         /// TODO Добавить новый маппер

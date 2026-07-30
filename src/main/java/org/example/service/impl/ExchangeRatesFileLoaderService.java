@@ -35,9 +35,11 @@ public class ExchangeRatesFileLoaderService implements ExchangeRatesLoaderServic
 
         try (BufferedReader fileReader = new BufferedReader(new FileReader(file))) {
             String exchangeRateLine;
+            long i = 1L;
             while ((exchangeRateLine = fileReader.readLine()) != null) {
                 List<String> exchangeRateFields = List.of(exchangeRateLine.split(";"));
                 ExchangeRateDto exchangeRateDto = new ExchangeRateDto(
+                        i++,
                         CurrencyCodeEnum.valueOf(exchangeRateFields.get(0)),
                         CurrencyCodeEnum.valueOf(exchangeRateFields.get(1)),
                         new BigDecimal(exchangeRateFields.get(2)),

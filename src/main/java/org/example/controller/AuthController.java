@@ -15,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,41 +30,36 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private  final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final RefreshTokenRepository refreshTokenRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login (@RequestBody LoginRequestDto loginRequestDto) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequestDto.getUsername(),
-                            loginRequestDto.getPassword()
-                    )
-            );
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequestDto.getUsername(),
+                        loginRequestDto.getPassword()
+                )
+        );
 
-            UserEntity user = userRepository.findByUsername(loginRequestDto.getUsername())
-                    .orElseThrow(() -> new UsernameNotFoundException("Username " + loginRequestDto.getUsername() + " не найден"));
+        UserEntity user = userRepository.findByUsername(loginRequestDto.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("Username " + loginRequestDto.getUsername() + " не найден"));
 
-            List<String> userRoles = user.getRoles().stream().toList();
+        List<String> userRoles = user.getRoles().stream().toList();
 
-            String accessToken = jwtService.generateAccessToken(loginRequestDto.getUsername(), userRoles);
-            String refreshToken = jwtService.generateRefreshToken(loginRequestDto.getUsername());
+        String accessToken = jwtService.generateAccessToken(loginRequestDto.getUsername(), userRoles);
+        String refreshToken = jwtService.generateRefreshToken(loginRequestDto.getUsername());
 
-            refreshTokenService.createRefreshToken(user, refreshToken);
+        refreshTokenService.createRefreshToken(user, refreshToken);
 
-            return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken));
-        } catch (AuthenticationException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Неверные username/password"));
-        }
+        return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken, user.getUsername(), userRoles));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
-
         if (!jwtService.validateRefreshToken(refreshTokenRequestDto.getRefreshToken())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Неверный refresh-токен"));
         }
@@ -93,7 +86,9 @@ public class AuthController {
         String accessToken = jwtService.generateAccessToken(username, userRoles);
         String refreshToken = jwtService.generateRefreshToken(username);
 
-        return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken));
+        refreshTokenService.createRefreshToken(user, refreshToken);
+
+        return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken, username, userRoles));
     }
 
     @PostMapping("/logout")
@@ -103,5 +98,4 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of("message", "Вы успешно вышли"));
     }
-
 }

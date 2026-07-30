@@ -136,3 +136,11 @@ select {
     font-size: 1.2rem;
     font-weight: 600;
 }
+
+#admin-panel .card-title {
+    font-size: 1.25rem;
+}
+
+#admin-rates-tbody td {
+    vertical-align: middle;
+}

@@ -1,11 +1,9 @@
 package org.example.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,25 +18,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final GlobalExceptionHandler globalExceptionHandler;
+
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, @Lazy GlobalExceptionHandler globalExceptionHandler) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.globalExceptionHandler = globalExceptionHandler;
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors(cors -> {
         });
 
-
-
-        httpSecurity.authorizeHttpRequests(auth -> {
-            auth.requestMatchers("/api/auth/**").permitAll();
-            auth.requestMatchers("/api/currencies").permitAll();
-            auth.requestMatchers("/api/rates/dates").permitAll();
-            auth.requestMatchers("/api/rates").permitAll();
-            auth.anyRequest().authenticated();
-        });
+        httpSecurity.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .anyRequest().permitAll()
+        );
 
         httpSecurity.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -47,21 +45,12 @@ public class SecurityConfig {
         httpSecurity.formLogin(AbstractHttpConfigurer::disable);
         httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
 
-        httpSecurity.exceptionHandling(exeption -> {
-            exeption.authenticationEntryPoint(((request, response, authException) -> {
-                response.setContentType("application/json;charset=UTF-8");
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.getWriter().write("{\"error\":\"Требуется авторизация\"}");
-            }));
-            exeption.accessDeniedHandler((request, response, authException) -> {
-                response.setContentType("application/json;charset=UTF-8");
-                response.setStatus(HttpStatus.FORBIDDEN.value());
-                response.getWriter().write("{\"error\":\"Доступ запрещен\"}");
-            });
-        });
+        httpSecurity.exceptionHandling(exception -> exception
+                .authenticationEntryPoint(globalExceptionHandler)
+                .accessDeniedHandler(globalExceptionHandler)
+        );
 
         return httpSecurity.build();
-
     }
 
     @Bean
@@ -70,8 +59,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-
 }

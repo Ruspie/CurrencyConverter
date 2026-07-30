@@ -15,6 +15,7 @@ import java.util.Objects;
 @Setter
 public class ExchangeRateDto implements Serializable {
 
+    private Long id;
     private CurrencyCodeEnum fromCurrency;
     private CurrencyCodeEnum toCurrency;
     private BigDecimal exchangeRate;
