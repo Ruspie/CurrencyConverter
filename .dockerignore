@@ -1,0 +1,12 @@
+.git
+.idea
+.vscode
+target
+out
+logs
+*.iml
+*.iws
+*.ipr
+.DS_Store
+docker-build.ps1
+README.md
