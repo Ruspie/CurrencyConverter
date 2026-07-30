@@ -22,7 +22,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: currency-converter:local
+    # Образ публикуется в Docker Hub: docker compose build && docker compose push
+    image: ruspie/ruspie-rep:latest
     container_name: currency-app
     depends_on:
       db:
