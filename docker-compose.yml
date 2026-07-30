@@ -22,8 +22,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # Образ публикуется в Docker Hub: docker compose build && docker compose push
-    image: ruspie/ruspie-rep:latest
+      # Оба тега на один образ: версия + latest
+      tags:
+        - ${IMAGE_NAME}:${IMAGE_VERSION}
+        - ${IMAGE_NAME}:latest
+    image: ${IMAGE_NAME}:${IMAGE_VERSION}
     container_name: currency-app
     depends_on:
       db:
