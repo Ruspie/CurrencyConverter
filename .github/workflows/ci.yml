@@ -1,111 +1,174 @@
-# Полноценный CI/CD workflow на базе официальных шаблонов GitHub Actions:
-# - ci/maven.yml          → сборка Java-проекта через Maven
-# - ci/docker-publish.yml → сборка (и публикация) Docker-образа
-#
-# Документация:
-# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
-# https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
+# ============================================================================
+# CI/CD workflow для CurrencyConverter
+# Основан на шаблонах GitHub Actions:
+#   - ci/maven.yml          → сборка Java через Maven
+#   - ci/docker-publish.yml → сборка и публикация Docker-образа
+# Публикация идёт в Docker Hub: https://hub.docker.com/r/ruspie/ruspie-rep
+# Версия образа всегда берётся из <version> в pom.xml
+# ============================================================================
 
+# Имя workflow — так оно отображается во вкладке Actions на GitHub
 name: CI
 
+# Когда запускать этот workflow
 on:
+  # Запуск при пуше кода в указанные ветки
   push:
+    # Список веток, на которые реагируем при push
     branches: [ master, develop, docker3 ]
+  # Запуск при создании/обновлении Pull Request в указанные ветки
   pull_request:
+    # Список целевых веток PR
     branches: [ master, develop, docker3 ]
 
+# Глобальные переменные окружения для всех jobs
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # Полное имя образа на Docker Hub (namespace/repository)
+  IMAGE_NAME: ruspie/ruspie-rep
+  # Версия JDK, которую ставим на runner (совпадает с pom.xml)
   JAVA_VERSION: "17"
 
+# Список независимых (или связанных) заданий workflow
 jobs:
-  # ---------------------------------------------------------------------------
-  # Job 1: сборка и проверка проекта (шаблон Java CI with Maven)
-  # Версия образа/артефакта всегда берётся из <version> в pom.xml
-  # ---------------------------------------------------------------------------
+
+  # ===========================================================================
+  # Job 1: сборка проекта Maven + чтение версии из pom.xml
+  # ===========================================================================
   build:
+    # Человекочитаемое имя job в UI Actions
     name: Build with Maven
+    # На каком runner'е крутится job (виртуальная машина Ubuntu от GitHub)
     runs-on: ubuntu-latest
+    # Значения, которые этот job отдаёт другим jobs
     outputs:
+      # Проброс версии из шага pom-version в следующие jobs (например docker)
       version: ${{ steps.pom-version.outputs.VERSION }}
 
+    # Последовательные шаги внутри job
     steps:
+      # --- Шаг: скачать код репозитория на runner ---
       - name: Checkout repository
-        uses: actions/checkout@v4
+        # Официальный action: git clone текущего commit/PR
+        uses: actions/checkout@v6
 
+      # --- Шаг: установить Java и настроить Maven-кэш ---
       - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
+        # Официальный action для установки JDK
+        uses: actions/setup-java@v5
         with:
+          # Какую версию Java поставить
           java-version: ${{ env.JAVA_VERSION }}
+          # Дистрибутив Temurin (Eclipse Adoptium) — стабильный OpenJDK
           distribution: temurin
+          # Кэшировать ~/.m2, чтобы зависимости Maven не качались каждый раз
           cache: maven
 
+      # --- Шаг: вытащить project.version из pom.xml ---
       - name: Read project version from pom.xml
+        # id нужен, чтобы другие шаги/jobs могли читать outputs этого шага
         id: pom-version
+        # shell-команды, выполняемые на runner
+        # Maven help:evaluate печатает только значение project.version
+        # Пишем VERSION в GITHUB_OUTPUT → станет steps.pom-version.outputs.VERSION
+        # Лог в консоль Actions для наглядности
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Project version from pom.xml: $VERSION"
 
+      # --- Шаг: собрать проект (compile + package → JAR) ---
       - name: Build with Maven
+        # -B = batch mode (без интерактивных вопросов), package = собрать артефакт
         run: mvn -B package --file pom.xml
 
+      # --- Шаг: сохранить JAR как artifact workflow (можно скачать из UI) ---
       - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
+        # Официальный action для загрузки файлов в хранилище run'а
+        uses: actions/upload-artifact@v5
         with:
+          # Имя артефакта в UI (включает версию из pom)
           name: app-jar-${{ steps.pom-version.outputs.VERSION }}
+          # Путь к собранному Spring Boot JAR
           path: target/CurrencyConverter-*.jar
+          # Упасть с ошибкой, если JAR не найден
           if-no-files-found: error
+          # Сколько дней хранить артефакт
           retention-days: 7
 
-  # ---------------------------------------------------------------------------
-  # Job 2: Docker-образ (шаблон Docker / docker-publish)
-  # Тег образа = project.version из pom.xml
-  # На PR — только сборка; на push в master/develop — push в GitHub Container Registry
-  # ---------------------------------------------------------------------------
+  # ===========================================================================
+  # Job 2: сборка Docker-образа и push в Docker Hub
+  # ===========================================================================
   docker:
+    # Человекочитаемое имя job в UI Actions
     name: Build Docker image
+    # Ждём успешного завершения job build (нужна версия из pom)
     needs: build
+    # Runner для Docker-сборки
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
+      # --- Шаг: снова скачать код (у каждого job своя чистая VM) ---
       - name: Checkout repository
-        uses: actions/checkout@v4
+        # Клонируем репозиторий, чтобы был Dockerfile и исходники
+        uses: actions/checkout@v6
 
+      # --- Шаг: включить Buildx (современный Docker builder) ---
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        # Нужен для build-push-action, кэша GHA и удобного push
+        uses: docker/setup-buildx-action@v4
 
-      - name: Log in to Container Registry
+      # --- Шаг: логин в Docker Hub (только на push, не на PR) ---
+      - name: Log in to Docker Hub
+        # На PR не логинимся и не пушим — только проверяем сборку
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        # Action логина в registry
+        uses: docker/login-action@v4
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          # Логин Docker Hub из GitHub Secrets (Settings → Secrets → Actions)
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          # Access Token Docker Hub из GitHub Secrets (не пароль аккаунта)
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # --- Шаг: сгенерировать теги и labels для образа ---
       - name: Extract Docker metadata
+        # id=meta → дальше читаем steps.meta.outputs.tags / labels
         id: meta
-        uses: docker/metadata-action@v5
+        # Action, который собирает стандартные docker-теги и OCI-labels
+        uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Куда тегать образ: ruspie/ruspie-rep
+          images: ${{ env.IMAGE_NAME }}
+          # Список правил для тегов
+          # Тег = версия из pom.xml (например 1.0.3)
+          # Тег = имя ветки (например docker3)
+          # Тег = короткий git sha commit'а
+          # Тег latest — только для default branch (обычно master)
           tags: |
             type=raw,value=${{ needs.build.outputs.version }}
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
+          # Метаданные образа (OCI labels)
+          # Версия приложения в labels образа
+          # Ссылка на исходный GitHub-репозиторий
           labels: |
             org.opencontainers.image.version=${{ needs.build.outputs.version }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
+      # --- Шаг: собрать образ по Dockerfile и (при push) отправить в Docker Hub ---
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        # Action сборки/пуша через Buildx
+        uses: docker/build-push-action@v7
         with:
+          # Контекст сборки = корень репозитория (где лежит Dockerfile)
           context: .
+          # true на push в ветку, false на PR (на PR только локальная сборка на runner)
           push: ${{ github.event_name != 'pull_request' }}
+          # Теги, которые сгенерировал metadata-action
           tags: ${{ steps.meta.outputs.tags }}
+          # Labels, которые сгенерировал metadata-action
           labels: ${{ steps.meta.outputs.labels }}
+          # Читать кэш слоёв из GitHub Actions Cache
           cache-from: type=gha
+          # Писать кэш слоёв в GitHub Actions Cache (mode=max — максимальное кэширование)
           cache-to: type=gha,mode=max
