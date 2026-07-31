@@ -138,16 +138,12 @@ jobs:
         with:
           # Куда тегать образ: ruspie/ruspie-rep
           images: ${{ env.IMAGE_NAME }}
-          # Список правил для тегов
+          # Только нужные теги: версия из pom + latest
           # Тег = версия из pom.xml (например 1.0.3)
-          # Тег = имя ветки (например docker3)
-          # Тег = короткий git sha commit'а
-          # Тег latest — только для default branch (обычно master)
+          # Тег latest — при каждом push (не на PR); раньше был только для master
           tags: |
             type=raw,value=${{ needs.build.outputs.version }}
-            type=ref,event=branch
-            type=sha,prefix=
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.event_name != 'pull_request' }}
           # Метаданные образа (OCI labels)
           # Версия приложения в labels образа
           # Ссылка на исходный GitHub-репозиторий
