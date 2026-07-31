@@ -50,7 +50,6 @@ public class ExchangeRateController {
         return new ResponseEntity<>(allExchangeRates, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ROLE_USER')")
     @GetMapping("/convert")
     public ResponseEntity<?> exchangeSum(
             @RequestParam BigDecimal amount,

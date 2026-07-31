@@ -1,5 +1,6 @@
 package org.example.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.example.dto.enums.CurrencyCodeEnum;
 
@@ -15,10 +16,16 @@ import java.util.Objects;
 @Setter
 public class ExchangeRateDto implements Serializable {
 
+    private Long id;
+    @NotNull(message = "fromCurrency не может быть пустым")
     private CurrencyCodeEnum fromCurrency;
+    @NotNull(message = "toCurrency не может быть пустым")
     private CurrencyCodeEnum toCurrency;
+    @NotNull(message = "exchangeRate не может быть пустым")
     private BigDecimal exchangeRate;
+    @NotNull(message = "scale не может быть пустым")
     private BigDecimal scale;
+    @NotNull(message = "rateDate не может быть пустым")
     private LocalDate rateDate;
 
     @Override

@@ -77,21 +77,6 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
         return exchangeRateRepository.findDistinctRateDates();
     }
 
-    public boolean addExchangeRate(ExchangeRateDto exchangeRate) {
-        for (ExchangeRateDto rate : exchangeRates) {
-            if (rate != null) {
-                if (rate.getFromCurrency().equals(exchangeRate.getFromCurrency())
-                        && rate.getToCurrency().equals(exchangeRate.getToCurrency())) {
-                    rate.setExchangeRate(exchangeRate.getExchangeRate());
-                    return true;
-                }
-            }
-        }
-
-        exchangeRates.add(exchangeRate);
-        return true;
-    }
-
     private ExchangeRateDto getCurrentExchangeRate(CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency) {
         for (ExchangeRateDto rate : exchangeRates) {
             if (rate != null) {

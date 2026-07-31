@@ -16,8 +16,6 @@ public interface CurrencyConverterService {
 
     SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency, LocalDate date) throws DataNotFoundException;
 
-    boolean addExchangeRate(ExchangeRateDto exchangeRateDto);
-
     void loadExchangeRates(LocalDate date) throws IOException, HttpNBRBLoaderException, InterruptedException;
 
     List<ExchangeRateDto> getAllExchangeRates(LocalDate date);

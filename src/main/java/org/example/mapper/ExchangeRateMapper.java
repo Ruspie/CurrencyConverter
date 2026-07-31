@@ -47,6 +47,7 @@ public class ExchangeRateMapper {
                     mapper.using(getCurrencyCodeEnumFromStringConverter).map(ExchangeRateEntity::getToCurrency, ExchangeRateDto::setToCurrency);
                     mapper.map(ExchangeRateEntity::getScale, ExchangeRateDto::setScale);
                     mapper.map(ExchangeRateEntity::getRate, ExchangeRateDto::setExchangeRate);
+                    mapper.map(ExchangeRateEntity::getId, ExchangeRateDto::setId);
                 });
 
         modelMapper.typeMap(ExchangeRateDto.class, ExchangeRateEntity.class)
@@ -57,7 +58,6 @@ public class ExchangeRateMapper {
                     mapper.map(ExchangeRateDto::getExchangeRate, ExchangeRateEntity::setRate);
                 });
 
-        /// TODO Добавить новый маппер
     }
 
 }

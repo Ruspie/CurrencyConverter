@@ -9,7 +9,6 @@
 </head>
 <body>
 <div class="container mt-5">
-    <!-- Заголовок + статус авторизации -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Конвертер валют</h1>
         <div>
@@ -19,7 +18,6 @@
         </div>
     </div>
 
-    <!-- Основной блок конвертера -->
     <div class="card mb-5">
         <div class="card-body p-4">
             <div class="row mb-3">
@@ -52,19 +50,81 @@
         </div>
     </div>
 
-    <!-- Блок популярных курсов -->
-    <div class="card">
+    <div class="card mb-5">
         <div class="card-header">
-            <h2 class="card-title">Популярные курсы валют</h2>
+            <h2 class="card-title mb-0">Популярные курсы валют</h2>
         </div>
         <div class="card-body">
             <p id="rates-count" class="text-muted small"></p>
             <div id="rates-container" class="row"></div>
         </div>
     </div>
+
+    <div id="admin-panel" class="card mb-5 d-none">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">Админка курсов</h2>
+            <span class="badge bg-danger">ADMIN</span>
+        </div>
+        <div class="card-body">
+            <div id="admin-message" class="alert d-none" role="alert"></div>
+
+            <h5 class="mb-3" id="admin-form-title">Добавить курс</h5>
+            <form id="admin-rate-form" class="row g-3 mb-4">
+                <input type="hidden" id="admin-rate-id">
+                <div class="col-md-3">
+                    <label for="admin-from" class="form-label">Из</label>
+                    <select class="form-select" id="admin-from" required></select>
+                </div>
+                <div class="col-md-3">
+                    <label for="admin-to" class="form-label">В</label>
+                    <select class="form-select" id="admin-to" required></select>
+                </div>
+                <div class="col-md-2">
+                    <label for="admin-rate" class="form-label">Курс</label>
+                    <input type="number" class="form-control" id="admin-rate" step="0.0001" min="0.0001" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="admin-scale" class="form-label">Scale</label>
+                    <input type="number" class="form-control" id="admin-scale" step="1" min="1" value="1" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="admin-date" class="form-label">Дата</label>
+                    <input type="date" class="form-control" id="admin-date" required>
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="admin-submit-btn">Добавить</button>
+                    <button type="button" class="btn btn-outline-secondary d-none" id="admin-cancel-btn">Отмена</button>
+                </div>
+            </form>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Список курсов</h5>
+                <div class="d-flex gap-2 align-items-center">
+                    <label for="admin-filter-date" class="form-label mb-0 small">Фильтр по дате:</label>
+                    <select class="form-select form-select-sm" id="admin-filter-date" style="width: auto;"></select>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="admin-reload-btn">Обновить</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Из</th>
+                        <th>В</th>
+                        <th>Курс</th>
+                        <th>Scale</th>
+                        <th>Дата</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody id="admin-rates-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Модальное окно логина -->
 <div id="login-modal" class="modal" tabindex="-1" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog">
         <div class="modal-content">

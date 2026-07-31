@@ -30,14 +30,9 @@ public class SecurityConfig {
         httpSecurity.cors(cors -> {
         });
 
-
-
         httpSecurity.authorizeHttpRequests(auth -> {
-            auth.requestMatchers("/api/auth/**").permitAll();
-            auth.requestMatchers("/api/currencies").permitAll();
-            auth.requestMatchers("/api/rates/dates").permitAll();
-            auth.requestMatchers("/api/rates").permitAll();
-            auth.anyRequest().authenticated();
+            auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
+            auth.anyRequest().permitAll();
         });
 
         httpSecurity.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
