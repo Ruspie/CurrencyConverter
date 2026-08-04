@@ -1,9 +1,17 @@
 package org.example.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.AuthResponseDto;
+import org.example.dto.ErrorResponseDto;
 import org.example.dto.LoginRequestDto;
 import org.example.dto.LogoutRequestDto;
+import org.example.dto.MessageResponseDto;
 import org.example.dto.RefreshTokenRequestDto;
 import org.example.repository.RefreshTokenRepository;
 import org.example.repository.UserRepository;
@@ -30,6 +38,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(name = "Auth", description = "Аутентификация и управление JWT-токенами")
 public class AuthController {
 
     private  final AuthenticationManager authenticationManager;
@@ -39,6 +48,13 @@ public class AuthController {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @PostMapping("/login")
+    @Operation(summary = "Вход в систему", description = "Аутентификация пользователя и выдача access/refresh токенов")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Успешная аутентификация",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Неверные username/password",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    })
     public ResponseEntity<?> login (@RequestBody LoginRequestDto loginRequestDto) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -65,6 +81,13 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    @Operation(summary = "Обновление токенов", description = "Выдача новой пары access/refresh токенов по действующему refresh-токену")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Токены успешно обновлены",
+                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "Неверный, отозванный или истёкший refresh-токен",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    })
     public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
 
         if (!jwtService.validateRefreshToken(refreshTokenRequestDto.getRefreshToken())) {
@@ -99,6 +122,11 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "Выход из системы", description = "Отзыв refresh-токена")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Успешный выход",
+                    content = @Content(schema = @Schema(implementation = MessageResponseDto.class)))
+    })
     public ResponseEntity<?> logout(@RequestBody LogoutRequestDto logoutRequestDto) {
         refreshTokenRepository.findByToken(logoutRequestDto.getRefreshToken())
                 .ifPresent(refreshTokenService::revokeToken);

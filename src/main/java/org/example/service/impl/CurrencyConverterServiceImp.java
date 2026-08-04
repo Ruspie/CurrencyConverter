@@ -11,9 +11,10 @@ import org.example.repository.ExchangeRateRepository;
 import org.example.repository.entity.ExchangeRateEntity;
 import org.example.service.CurrencyConverterService;
 import org.example.service.ExchangeRatesLoaderService;
+import org.jspecify.annotations.Nullable;
 import org.modelmapper.ModelMapper;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -36,6 +37,7 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     public List<ExchangeRateDto> exchangeRates = new ArrayList<>();
 
+    @Transactional
     public void loadExchangeRates(LocalDate date) throws IOException, HttpNBRBLoaderException, InterruptedException {
         List<ExchangeRateEntity> exchangeRateEntities = exchangeRatesFileLoader.loadRates(date).stream()
                 .map(exchangeRateDto -> modelMapper.map(exchangeRateDto, ExchangeRateEntity.class))
@@ -93,24 +95,60 @@ public class CurrencyConverterServiceImp implements CurrencyConverterService {
 
     @Override
     public SumDto exchangeSum(SumDto sumDto, CurrencyCodeEnum destinationCurrency, LocalDate date) throws DataNotFoundException {
-        ExchangeRateEntity currentExchangeRate = exchangeRateRepository.findFirstByFromCurrencyAndToCurrencyAndRateDate(
-                sumDto.getCurrency().name(), destinationCurrency.name(), date
-        ).orElseThrow(() -> new DataNotFoundException("Не найден курс конверсии", sumDto.getCurrency(), destinationCurrency));
+        if (sumDto.getCurrency().equals(destinationCurrency)) {
+            return sumDto;
+        }
 
-        modelMapper.map(currentExchangeRate, ExchangeRateEntity.class);
-
-        /// TODO Сделать кросс конверсию
-
-        BigDecimal result = sumDto.getSum()
-                .multiply(currentExchangeRate.getRate())
-                .multiply(currentExchangeRate.getScale())
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal result = convertSum(sumDto.getSum(), sumDto.getCurrency(), destinationCurrency, date);
 
         SumDto sumDtoResult = new SumDto(
                 result, destinationCurrency
         );
         sumDtoResult.print(sumDto);
         return sumDtoResult;
+    }
+
+    private BigDecimal convertSum(BigDecimal sum, CurrencyCodeEnum fromCurrency, CurrencyCodeEnum toCurrency, LocalDate date) throws DataNotFoundException {
+        final CurrencyCodeEnum BASE_CURRENCY = CurrencyCodeEnum.BYN;
+
+        Optional<ExchangeRateEntity> rate = findRate(fromCurrency, toCurrency, date);
+        if (rate.isPresent()) {
+            return applyDirectConversion(sum, rate.get());
+        }
+
+        rate = findRate(toCurrency, fromCurrency, date);
+        if (rate.isPresent()) {
+            return applyInverseConversion(sum, rate.get());
+        }
+
+        if (!BASE_CURRENCY.equals(fromCurrency) && !BASE_CURRENCY.equals(toCurrency)) {
+            return applyCrossConversion(sum, fromCurrency, toCurrency, date, BASE_CURRENCY);
+        }
+
+        throw new DataNotFoundException("Не найден курс конверсии", fromCurrency, toCurrency);
+    }
+
+    private BigDecimal applyInverseConversion(BigDecimal sum, ExchangeRateEntity rate) {
+        return sum
+                .multiply(rate.getScale())
+                .divide(rate.getRate(), RoundingMode.HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal applyDirectConversion(BigDecimal sum, ExchangeRateEntity rate) {
+        return sum
+                .multiply(rate.getRate())
+                .divide(rate.getScale(), RoundingMode.HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private @Nullable BigDecimal applyCrossConversion(BigDecimal sum, CurrencyCodeEnum fromCurrency, CurrencyCodeEnum destinationCurrency, LocalDate date, CurrencyCodeEnum BASE_CURRENCY) throws DataNotFoundException {
+        BigDecimal result = convertSum(sum, fromCurrency, BASE_CURRENCY, date);
+        return convertSum(result, BASE_CURRENCY, destinationCurrency, date);
+    }
+
+    private Optional<ExchangeRateEntity> findRate(CurrencyCodeEnum from, CurrencyCodeEnum to, LocalDate date) {
+        return exchangeRateRepository.findFirstByFromCurrencyAndToCurrencyAndRateDate(from.name(), to.name(), date);
     }
 
     @Override

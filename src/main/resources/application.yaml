@@ -39,3 +39,11 @@ spring:
     create-schemas: true
 logging:
   config: classpath:log4j2.properties
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha

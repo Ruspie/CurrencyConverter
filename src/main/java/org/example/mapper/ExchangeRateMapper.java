@@ -35,6 +35,7 @@ public class ExchangeRateMapper {
 
         modelMapper.typeMap(NBRBExchangeRateDto.class, ExchangeRateDto.class)
                 .addMappings(mapper -> {
+                    mapper.map(input -> null, ExchangeRateDto::setId);
                     mapper.using(getCurrencyCodeEnumFromStringConverter).map(NBRBExchangeRateDto::getFromCurrency, ExchangeRateDto::setFromCurrency);
                     mapper.using(getCurrencyCodeEnumFromStringConverter).map(nbrbExchangeRateDto -> "BYN", ExchangeRateDto::setToCurrency);
                     mapper.map(NBRBExchangeRateDto::getScale, ExchangeRateDto::setScale);
