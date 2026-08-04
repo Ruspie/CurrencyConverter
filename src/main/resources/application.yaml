@@ -7,7 +7,7 @@ loading:
     days: 10
 
 scheduler:
-  cron: "0 1 0 * * *"
+  cron: "0 15 19 * * *"
 
 spring:
   config:

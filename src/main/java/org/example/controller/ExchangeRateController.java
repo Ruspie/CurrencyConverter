@@ -47,7 +47,8 @@ public class ExchangeRateController {
     public ResponseEntity<List<ExchangeRateDto>> getExchangeRates(@RequestParam LocalDate date) {
         List<ExchangeRateDto> allExchangeRates = currencyConverterService.getAllExchangeRates(date);
 
-        return new ResponseEntity<>(allExchangeRates, HttpStatus.OK);
+        List<ExchangeRateDto> test = new ArrayList<>();
+        return new ResponseEntity<>(test, HttpStatus.OK);
     }
 
     @GetMapping("/convert")

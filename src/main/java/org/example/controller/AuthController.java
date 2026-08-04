@@ -58,7 +58,7 @@ public class AuthController {
 
             refreshTokenService.createRefreshToken(user, refreshToken);
 
-            return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken));
+            return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken, user.getUsername(), userRoles));
         } catch (AuthenticationException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Неверные username/password"));
         }
@@ -93,7 +93,9 @@ public class AuthController {
         String accessToken = jwtService.generateAccessToken(username, userRoles);
         String refreshToken = jwtService.generateRefreshToken(username);
 
-        return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken));
+        refreshTokenService.createRefreshToken(user, refreshToken);
+
+        return ResponseEntity.ok(new AuthResponseDto(accessToken, refreshToken, user.getUsername(), userRoles));
     }
 
     @PostMapping("/logout")

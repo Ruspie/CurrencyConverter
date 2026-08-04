@@ -1,8 +1,19 @@
-const BASE = 'http://localhost:8080/api';
+const BASE = (location.protocol.startsWith('http') && location.port === '8080')
+    ? '/api'
+    : 'http://localhost:8080/api';
 let accessToken = null;
 let refreshToken = localStorage.getItem('rt');
 let currentUser = null;
 let currentRoles = [];
+
+function rolesFromAccessToken(token) {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        return Array.isArray(payload.roles) ? payload.roles : [];
+    } catch (e) {
+        return [];
+    }
+}
 
 // -------- Auth --------
 async function authLogin(username, password) {
@@ -13,7 +24,7 @@ async function authLogin(username, password) {
     });
     if (!r.ok) {
         const e = await r.json().catch(() => ({}));
-        throw new Error(e.error || 'Ошибка');
+        throw new Error(e.error || 'Ошибка входа');
     }
     applyAuth(await r.json());
 }
@@ -36,7 +47,13 @@ function applyAuth(data) {
     accessToken = data.accessToken;
     refreshToken = data.refreshToken;
     currentUser = data.username || null;
-    currentRoles = data.roles || [];
+    currentRoles = (data.roles && data.roles.length) ? data.roles : rolesFromAccessToken(accessToken);
+    if (!currentUser && accessToken) {
+        try {
+            const payload = JSON.parse(atob(accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            currentUser = payload.sub || null;
+        } catch (e) {}
+    }
     localStorage.setItem('rt', refreshToken);
 }
 
