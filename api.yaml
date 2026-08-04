@@ -1,0 +1,501 @@
+openapi: 3.0.3
+info:
+  title: Currency Converter API
+  description: API для конвертации валют, просмотра курсов и администрирования обменных курсов
+  version: 1.0.4
+servers:
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: Auth
+    description: Аутентификация и управление JWT-токенами
+  - name: Exchange Rates
+    description: Публичные операции с курсами валют и конвертацией
+  - name: Admin Exchange Rates
+    description: CRUD курсов валют (требуется роль ADMIN)
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Вход в систему
+      description: Аутентификация пользователя и выдача access/refresh токенов
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequestDto'
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponseDto'
+        '400':
+          description: Неверные username/password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Обновление токенов
+      description: Выдача новой пары access/refresh токенов по действующему refresh-токену
+      operationId: refresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequestDto'
+      responses:
+        '200':
+          description: Токены успешно обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponseDto'
+        '401':
+          description: Неверный, отозванный или истёкший refresh-токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Выход из системы
+      description: Отзыв refresh-токена
+      operationId: logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequestDto'
+      responses:
+        '200':
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDto'
+
+  /api/currencies:
+    get:
+      tags:
+        - Exchange Rates
+      summary: Список валют
+      description: Возвращает поддерживаемые коды валют
+      operationId: getCurrencies
+      responses:
+        '200':
+          description: Список кодов валют
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - BYN
+                    - EUR
+                    - USD
+                    - RUB
+                    - PLN
+                  example: USD
+
+  /api/rates/dates:
+    get:
+      tags:
+        - Exchange Rates
+      summary: Доступные даты курсов
+      description: Возвращает даты, для которых есть курсы валют
+      operationId: getAvailableDates
+      responses:
+        '200':
+          description: Список дат
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: date
+                  example: '2026-08-04'
+
+  /api/rates:
+    get:
+      tags:
+        - Exchange Rates
+      summary: Курсы на дату
+      description: Возвращает курсы валют на указанную дату
+      operationId: getExchangeRates
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: Дата курсов
+          schema:
+            type: string
+            format: date
+            example: '2026-08-04'
+      responses:
+        '200':
+          description: Список курсов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangeRateDto'
+
+  /api/convert:
+    get:
+      tags:
+        - Exchange Rates
+      summary: Конвертация суммы
+      description: Конвертирует сумму из одной валюты в другую на указанную дату
+      operationId: exchangeSum
+      parameters:
+        - name: amount
+          in: query
+          required: true
+          description: Сумма для конвертации
+          schema:
+            type: number
+            example: 100.00
+        - name: from
+          in: query
+          required: true
+          description: Исходная валюта
+          schema:
+            $ref: '#/components/schemas/CurrencyCodeEnum'
+        - name: to
+          in: query
+          required: true
+          description: Целевая валюта
+          schema:
+            $ref: '#/components/schemas/CurrencyCodeEnum'
+        - name: date
+          in: query
+          required: true
+          description: Дата курса
+          schema:
+            type: string
+            format: date
+            example: '2026-08-04'
+      responses:
+        '200':
+          description: Результат конвертации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SumDto'
+        '400':
+          description: Курс не найден или некорректные параметры
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+
+  /api/admin/rates:
+    get:
+      tags:
+        - Admin Exchange Rates
+      summary: Список курсов
+      description: Возвращает все курсы или курсы на указанную дату
+      operationId: getAllRates
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: Фильтр по дате (опционально)
+          schema:
+            type: string
+            format: date
+            example: '2026-08-04'
+      responses:
+        '200':
+          description: Список курсов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangeRateDto'
+        '401':
+          description: Требуется авторизация
+        '403':
+          description: Доступ запрещён
+    post:
+      tags:
+        - Admin Exchange Rates
+      summary: Создать курс
+      description: Создаёт новый курс валют
+      operationId: createRate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeRateDto'
+      responses:
+        '201':
+          description: Курс создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeRateDto'
+        '400':
+          description: Ошибка валидации
+        '401':
+          description: Требуется авторизация
+        '403':
+          description: Доступ запрещён
+
+  /api/admin/rates/{id}:
+    get:
+      tags:
+        - Admin Exchange Rates
+      summary: Курс по ID
+      description: Возвращает курс валют по идентификатору
+      operationId: getRateById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор курса
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Курс найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeRateDto'
+        '400':
+          description: Курс не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Требуется авторизация
+        '403':
+          description: Доступ запрещён
+    put:
+      tags:
+        - Admin Exchange Rates
+      summary: Обновить курс
+      description: Обновляет существующий курс валют
+      operationId: updateRate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор курса
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeRateDto'
+      responses:
+        '200':
+          description: Курс обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeRateDto'
+        '400':
+          description: Курс не найден или ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Требуется авторизация
+        '403':
+          description: Доступ запрещён
+    delete:
+      tags:
+        - Admin Exchange Rates
+      summary: Удалить курс
+      description: Удаляет курс валют по идентификатору
+      operationId: deleteRate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор курса
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '204':
+          description: Курс удалён
+        '400':
+          description: Курс не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '401':
+          description: Требуется авторизация
+        '403':
+          description: Доступ запрещён
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access-токен. Получите через POST /api/auth/login
+  schemas:
+    CurrencyCodeEnum:
+      type: string
+      enum:
+        - BYN
+        - EUR
+        - USD
+        - RUB
+        - PLN
+      example: USD
+    LoginRequestDto:
+      type: object
+      description: Запрос на вход
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+          example: admin
+        password:
+          type: string
+          description: Пароль
+          example: password
+    AuthResponseDto:
+      type: object
+      description: Ответ с JWT-токенами
+      properties:
+        accessToken:
+          type: string
+          description: Access JWT-токен
+        refreshToken:
+          type: string
+          description: Refresh JWT-токен
+        username:
+          type: string
+          description: Имя пользователя
+          example: admin
+        roles:
+          type: array
+          description: Роли пользователя
+          items:
+            type: string
+          example:
+            - ADMIN
+    RefreshTokenRequestDto:
+      type: object
+      description: Запрос на обновление токенов
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh JWT-токен
+    LogoutRequestDto:
+      type: object
+      description: Запрос на выход
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh JWT-токен для отзыва
+    MessageResponseDto:
+      type: object
+      description: Информационное сообщение
+      properties:
+        message:
+          type: string
+          description: Текст сообщения
+          example: Вы успешно вышли
+    ErrorResponseDto:
+      type: object
+      description: Ответ с ошибкой
+      properties:
+        error:
+          type: string
+          description: Текст ошибки
+          example: Неверные username/password
+    ExchangeRateDto:
+      type: object
+      description: Курс обмена валют
+      required:
+        - fromCurrency
+        - toCurrency
+        - exchangeRate
+        - scale
+        - rateDate
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор курса
+          example: 1
+          readOnly: true
+        fromCurrency:
+          $ref: '#/components/schemas/CurrencyCodeEnum'
+        toCurrency:
+          $ref: '#/components/schemas/CurrencyCodeEnum'
+        exchangeRate:
+          type: number
+          description: Значение курса
+          example: 3.2500
+        scale:
+          type: number
+          description: Масштаб курса
+          example: 1
+        rateDate:
+          type: string
+          format: date
+          description: Дата курса
+          example: '2026-08-04'
+    SumDto:
+      type: object
+      description: Сумма в валюте
+      properties:
+        sum:
+          type: number
+          description: Сумма
+          example: 325.00
+        currency:
+          $ref: '#/components/schemas/CurrencyCodeEnum'
