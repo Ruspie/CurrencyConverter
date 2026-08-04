@@ -45,8 +45,8 @@ jobs:
         with:
           name: app-jar-${{ steps.pom-version.outputs.VERSION }}
           path: target/CurrencyConverter-*.jar
-        if-no-files-found: error
-        retention-days: 3
+          if-no-files-found: error
+          retention-days: 3
 
   docker:
     name: Bild Docker Image
